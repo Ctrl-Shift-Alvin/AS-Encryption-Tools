@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace AlvinSoft.Cryptography {
@@ -12,6 +13,7 @@ namespace AlvinSoft.Cryptography {
     public static class RandomGenerator {
         internal static readonly object Sync = new object();
         internal static readonly Random Random = new Random();
+        /// <summary>Shorthand for <c>Next(0, int.MaxValue)</c></summary>
         public static int Next() {
             lock (Sync) {
                 return Random.Next();
@@ -50,6 +52,7 @@ namespace AlvinSoft.Cryptography {
                     Key = DeriveKey(Password, Salt, KeyDeriveIterations);
             }
         }
+        public bool HasPassword => Password == null;
 
         public int SaltSize { get; } = 32;
         public const int DefaultKeyDeriveIterations = 696;
@@ -73,7 +76,7 @@ namespace AlvinSoft.Cryptography {
         public AesEncryption() => GenerateAndFill();
 
         /// <summary>Create a new instance, assign password, salt and iv, then derive the key</summary>
-        public AesEncryption(string password, byte[] iv, byte[] salt, int derivingIterations = DefaultKeyDeriveIterations) {
+        public AesEncryption(string password, byte[] salt, byte[] iv, int derivingIterations = DefaultKeyDeriveIterations) {
             Password = password;
             IV = new byte[iv.Length];
             Salt = new byte[salt.Length];
@@ -81,6 +84,13 @@ namespace AlvinSoft.Cryptography {
             Array.Copy(salt, Salt, Salt.Length);
             Key = DeriveKey(Password, Salt, KeyDeriveIterations);
             NumbersOnlyPassword = Encoding.ASCII.GetBytes(password).All(k => 0x0030 <= k && k <= 0x0039); //use ascii so one byte equals one character
+        }
+        /// <summary>Create a new instance and assign key and iv</summary>
+        public AesEncryption(byte[] key, byte[] iv) {
+            Key = key;
+            IV = iv;
+            Salt = null;
+            Password = null;
         }
 
         #region Encrypt
@@ -275,16 +285,16 @@ namespace AlvinSoft.Cryptography {
                 return iv;
             }
         }
-        public static byte[] DeriveKey(string code, byte[] salt, int iterations) {
+        public static byte[] DeriveKey(string password, byte[] salt, int iterations) {
 
-            if (code == null)
-                throw new ArgumentNullException(nameof(code));
+            if (password == null)
+                throw new ArgumentNullException(nameof(password));
             if (salt == null)
                 throw new ArgumentNullException(nameof(salt));
             if (iterations < 0)
                 throw new ArgumentOutOfRangeException(nameof(iterations));
 
-            var gen = new Rfc2898DeriveBytes(code, salt, iterations);
+            var gen = new Rfc2898DeriveBytes(password, salt, iterations);
             return gen.GetBytes(32);
         }
 
@@ -345,10 +355,13 @@ namespace AlvinSoft.Cryptography {
             HasPrivateKey = false;
         }
 
+        /// <summary>Create a new RSA instance and import the provided public key values
+        public RsaEncryption(RsaPublicKey publicKey) : this(publicKey.Modulus, publicKey.Exponent) { }
+
         /// <summary>Returns all RSA parameters, including this instance's private key. Use with caution!</summary>
         public RSAParameters GetPrivateKey() => rsa.ExportParameters(true);
         /// <summary>Returns the RSA parameters containing this instance's public key only.</summary>
-        public RSAParameters GetPublicKey() => rsa.ExportParameters(false);
+        public RsaPublicKey GetPublicKey() => new RsaPublicKey(rsa.ExportParameters(false));
 
         /// <summary>Encrypt <paramref name="data"/> using this instance's public key</summary>
         /// /// <returns>The encrypted bytes. If anything fails, <c>null</c>.</returns>
@@ -399,5 +412,47 @@ namespace AlvinSoft.Cryptography {
         }
 
         public void Dispose() => rsa.Dispose();
+
+        /// <summary>Represents an RSA public key, holding the modulus and exponent.</summary>
+        public readonly struct RsaPublicKey {
+            public byte[] Modulus { get; }
+            public byte[] Exponent { get; }
+            public RsaPublicKey(byte[] modulus, byte[] exponent) {
+                Modulus = modulus;
+                Exponent = exponent;
+            }
+            public RsaPublicKey(RSAParameters parameters) {
+                Modulus = parameters.Modulus;
+                Exponent = parameters.Exponent;
+            }
+            public RsaPublicKey(byte[] packageBytes) {
+
+                int modulusSize = BitConverter.ToInt32(packageBytes, 0);
+                int exponentSize = packageBytes.Length - 4 - modulusSize;
+
+                if (4 + modulusSize + exponentSize != packageBytes.Length)
+                    throw new ArgumentException("Invalid package");
+
+                Modulus = new byte[modulusSize];
+                Exponent = new byte[exponentSize];
+
+                var array = packageBytes.Skip(4).Take(modulusSize).ToArray();
+                array.CopyTo(Modulus, 0);
+                packageBytes.Skip(4 + modulusSize).ToArray().CopyTo(Exponent, 0);
+            }
+            public RSAParameters GetRSAParameters() => new RSAParameters() { Modulus = Modulus, Exponent = Exponent };
+
+            /// <summary>A byte array where the first 4 bytes represent the length of the modulus and the modulus and exponent preceede</summary>
+            public byte[] GetBytesPackage() {
+                using (var bytes = new MemoryStream(sizeof(int) + Modulus.Length + Exponent.Length)) {
+                    bytes.Write(BitConverter.GetBytes(Modulus.Length), 0, sizeof(int)); //write header (length of modulus)
+                    bytes.Write(Modulus, 0, Modulus.Length);
+                    bytes.Write(Exponent, 0, Exponent.Length);
+
+                    return bytes.ToArray();
+                }
+            }
+
+        }
     }
 }

@@ -36,6 +36,18 @@ namespace ASEncryptionToolsTest {
             CollectionAssert.AreEqual(unencrypted, decrypted);
 
         }
+
+        [TestMethod("AlvinSoft.Encryption.RSA Test RsaPublicKey")]
+        public void RSATest2() {
+
+            var publicKey = new RsaEncryption().GetPublicKey();
+
+            var package = publicKey.GetBytesPackage();
+            var interpretedPackage = new RsaEncryption.RsaPublicKey(package);
+
+            CollectionAssert.AreEqual(publicKey.Modulus, interpretedPackage.Modulus);
+            CollectionAssert.AreEqual(publicKey.Exponent, interpretedPackage.Exponent);
+        }
         #endregion
 
         #region Aes
@@ -44,7 +56,7 @@ namespace ASEncryptionToolsTest {
 
             var encrOriginal = new AesEncryption();
 
-            var encrPublic = new AesEncryption(encrOriginal.Password, encrOriginal.IV, encrOriginal.Salt);
+            var encrPublic = new AesEncryption(encrOriginal.Password, encrOriginal.Salt, encrOriginal.IV);
 
             string unencrypted = AesEncryption.GeneratePassword(1024);
 
@@ -60,7 +72,7 @@ namespace ASEncryptionToolsTest {
 
             var encrOriginal = new AesEncryption();
 
-            var encrPublic = new AesEncryption(encrOriginal.Password, encrOriginal.IV, encrOriginal.Salt);
+            var encrPublic = new AesEncryption(encrOriginal.Password, encrOriginal.Salt, encrOriginal.IV);
 
             byte[] unencrypted = RandomGenerator.GenerateBytes(1024);
 
@@ -76,11 +88,11 @@ namespace ASEncryptionToolsTest {
         [TestMethod("AlvinSoft.Encryption Test NumbersOnlyPassword")]
         public void AES256Test2() {
 
-            var encr = new AesEncryption("123123123", AesEncryption.GenerateIv(), RandomGenerator.GenerateBytes(32));
+            var encr = new AesEncryption("123123123", RandomGenerator.GenerateBytes(32), AesEncryption.GenerateIv());
 
             Assert.IsTrue(encr.NumbersOnlyPassword);
 
-            encr = new AesEncryption("l1231238192381293", encr.IV, encr.Salt);
+            encr = new AesEncryption("l1231238192381293", encr.Salt, encr.IV);
             Assert.IsTrue(!encr.NumbersOnlyPassword);
 
         }
