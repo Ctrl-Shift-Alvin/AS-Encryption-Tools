@@ -21,17 +21,11 @@ byte[] buffer = new byte[32];
 RandomGenerator.FillNonZeroBytes(buffer);
 ```
 
-To get a byte array filled with random bytes, use the following:
+To get a byte array filled with random bytes, use ```RandomGenerator.GenerateBytes(32);```
 
-```RandomGenerator.GenerateBytes(32);```
+To get a random integer, use the ```RandomGenerator.Next(24, 53)```
 
-To get a random integer, use the following:
-
-```RandomGenerator.Next(24, 53)```
-
-To get a random positive integer, use the following:
-
-```RandomGenerator.Next()```
+To get a random positive integer, use ```RandomGenerator.Next()```
 
 
 ## AesEncryption
@@ -41,13 +35,9 @@ A class that holds cryptographic keys for encrypting and decrypting data. It all
 To start, create a new instance of the class. It will automatically generate random, cryptographically strong keys.
 ```var encryption = new AesEncryption();```
 
-If you already have the cryptographic info and want to import it, use the following:
-```var encryption = new AesEncryption(string password, byte[] salt, byte[] iv, int derivingIterations = 696)```
-which will derive the key from the password using the provided salt and iteration count. Note that the Key and IV are not validated, and trying to encrypt/decrypt using invalid data will throw a CryptographicException.
+If you already have the cryptographic info and want to import it, use ```var encryption = new AesEncryption(string password, byte[] salt, byte[] iv, int derivingIterations = 696)```, which will derive the key from the password using the provided salt and iteration count. Note that the Key and IV are not validated, and trying to encrypt/decrypt using invalid data, could throw a CryptographicException, if you use ```GetEncryptor()```/```GetDecryptor()```.
 
-If you have the cryptographic key and iv and do not need to derive the key, use the following:
-```var encryption = new AesEncryption(byte[] key, byte[] iv)```
-which will assign only the key and iv and will leave the salt and password property set to null. Encrypting/decrypting data will work in this state. Use the ```HasPassword``` property to check if the instance has a password assigned.
+If you have the cryptographic key and iv and do not need to derive the key, use ```var encryption = new AesEncryption(byte[] key, byte[] iv)```, which will assign only the key and iv and will leave the salt and password property set to null. Encrypting/decrypting data will work in this state. Use the ```HasPassword``` property to check if the instance has a password assigned.
 
 
 To encrypt data using an ```AesEncryption``` instance, you can use the following methods:
