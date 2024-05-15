@@ -40,13 +40,19 @@ namespace ASEncryptionToolsTest {
         [TestMethod("AlvinSoft.Encryption.RSA Test RsaPublicKey")]
         public void RSATest2() {
 
-            var publicKey = new RsaEncryption().GetPublicKey();
+            RsaEncryption rsa;
+            RsaEncryption rsa1 = new();
 
-            var package = publicKey.GetBytesPackage();
-            var interpretedPackage = new RsaEncryption.RsaPublicKey(package);
+            byte[] publicPackage = rsa1.GetPublicKey().GetBytesPackage();
 
-            CollectionAssert.AreEqual(publicKey.Modulus, interpretedPackage.Modulus);
-            CollectionAssert.AreEqual(publicKey.Exponent, interpretedPackage.Exponent);
+            rsa = new(new RsaEncryption.RsaPublicKey(publicPackage));
+
+            string initial = AesEncryption.GeneratePassword(31);
+            byte[] encrypted = rsa.EncryptString(initial);
+            string decrypted = rsa1.DecryptString(encrypted);
+
+            Assert.AreEqual(initial, decrypted);
+
         }
         #endregion
 
