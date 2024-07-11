@@ -6,8 +6,8 @@
     <AssemblyTitle>AlvinSoft Encryption Tools</AssemblyTitle>
     <Product>ASEncryptionTools</Product>
     <Copyright>Copyright © AlvinSoft 2024</Copyright>
-    <AssemblyVersion>1.0.0.1</AssemblyVersion>
-    <FileVersion>1.0.0.1</FileVersion>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.2.0.0</FileVersion>
     <NeutralLanguage>en-GB</NeutralLanguage>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
