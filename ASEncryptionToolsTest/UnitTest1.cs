@@ -1,3 +1,5 @@
+using AlvinSoft;
+
 namespace ASEncryptionToolsTest {
     [TestClass]
     public class AlvinSoftCryptographyTests {
