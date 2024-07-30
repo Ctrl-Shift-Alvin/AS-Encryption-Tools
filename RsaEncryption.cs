@@ -212,67 +212,6 @@ namespace AlvinSoft.Cryptography {
             return new(rsa.ExportParameters(false));
 
         }
-
-        /// <summary>
-        /// Export the full key
-        /// </summary>
-        /// <exception cref="ArgumentException"/>
-        public byte[] ExportFullKey() {
-
-            using RSA rsa = RSA.Create();
-            rsa.ImportParameters(Key);
-
-            byte[] privateKey = ExportPrivateKey();
-            byte[] publicKey = ExportPublicKey();
-
-            byte[] result = new byte[1 + 4 + privateKey.Length + publicKey.Length];
-
-            result[0] = 2;
-
-            BinaryPrimitives.WriteInt32BigEndian(result.AsSpan()[1..], privateKey.Length); //write private key length
-
-            Array.Copy(privateKey, 0, result, 5, privateKey.Length); //copy private key
-            Array.Copy(publicKey, 0, result, 5 + privateKey.Length, publicKey.Length); //copy public key
-
-            return result;
-
-        }
-        /// <summary>
-        /// Import an exported key
-        /// </summary>
-        /// <param name="key">A key exported with <see cref="ExportFullKey"/></param>
-        /// <exception cref="ArgumentException"/>
-        public static RSAKey ImportFullKey(byte[] key) {
-
-            if (key[0] != 2)
-                throw new ArgumentException("The provided key is not a full key!", nameof(key));
-
-            int privateKeyLength = BinaryPrimitives.ReadInt32BigEndian(key.AsSpan()[1..]);
-            int publicKeyLength = key.Length - privateKeyLength - 5;
-
-            ReadOnlySpan<byte> privateKey;
-            ReadOnlySpan<byte> publicKey;
-
-            privateKey = key.AsSpan(5, privateKeyLength);
-            publicKey = key.AsSpan(privateKeyLength + 5, publicKeyLength);
-
-
-            RSAParameters parameters = new();
-            using RSA rsa = RSA.Create();
-
-            //import private key and export to "parameters"
-            rsa.ImportPkcs8PrivateKey(privateKey, out _);
-            parameters = rsa.ExportParameters(true);
-
-            //import public key and assign the rest of the fields
-            rsa.ImportRSAPublicKey(key, out _);
-            RSAParameters publicParams = rsa.ExportParameters(false);
-            parameters.Modulus = publicParams.Modulus;
-            parameters.Exponent = publicParams.Exponent;
-
-            return new(rsa.ExportParameters(true));
-
-        }
         #endregion
 
         #region Base64
@@ -310,13 +249,6 @@ namespace AlvinSoft.Cryptography {
         }
 
         #endregion
-
-        private static byte[] AddPrefix(byte prefix, byte[] data) {
-            byte[] result = new byte[data.Length + 1];
-            result[0] = prefix;
-            Array.Copy(data, 0, result, 1, data.Length);
-            return result;
-        }
 
     }
 }
