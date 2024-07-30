@@ -62,7 +62,7 @@ namespace AlvinSoft.Cryptography {
 
             try {
                 using RSA rsa = Key.CreateRSA();
-                return rsa.Decrypt(Encoding.Unicode.GetBytes(data), RSAEncryptionPadding.OaepSHA512);
+                return rsa.Encrypt(Encoding.Unicode.GetBytes(data), RSAEncryptionPadding.OaepSHA512);
             } catch {
                 return null;
             }
@@ -88,6 +88,7 @@ namespace AlvinSoft.Cryptography {
     }
 
     /// <summary>Represents an RSA key, with or without the private key.</summary>
+    [UnsupportedOSPlatform("browser")]
     public readonly struct RSAKey {
 
         /// <summary>The used RSA key</summary>
@@ -162,7 +163,7 @@ namespace AlvinSoft.Cryptography {
         }
 
         /// <summary>
-        /// Import an exported private key
+        /// Import an exported private key and calculate the public key.
         /// </summary>
         /// <param name="key">A key exported with <see cref="ExportPrivateKey"/></param>
         /// <exception cref="ArgumentException"/>
@@ -172,7 +173,7 @@ namespace AlvinSoft.Cryptography {
                 throw new ArgumentException("The provided key is not a private key!", nameof(key));
 
                 using RSA rsa = RSA.Create();
-            rsa.ImportPkcs8PrivateKey(key, out _);
+            rsa.ImportPkcs8PrivateKey(key.AsSpan(1), out _);
 
             return new(rsa.ExportParameters(true));
 
@@ -206,7 +207,7 @@ namespace AlvinSoft.Cryptography {
                 throw new ArgumentException("The provided key is not a public key!", nameof(key));
 
             using RSA rsa = RSA.Create();
-            rsa.ImportRSAPublicKey(key, out _);
+            rsa.ImportRSAPublicKey(key.AsSpan(1), out _);
 
             return new(rsa.ExportParameters(false));
 
