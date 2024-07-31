@@ -326,10 +326,8 @@ namespace AlvinSoft.Cryptography {
 
             var aes = Aes.Create();
 
-            lock (Key)
-                aes.Key = Key;
-            lock (IV)
-                aes.IV = IV;
+            aes.Key = Key;
+            aes.IV = IV;
 
             return new CryptoStream(target, aes.CreateEncryptor(), CryptoStreamMode.Write);
 
@@ -345,10 +343,8 @@ namespace AlvinSoft.Cryptography {
             ArgumentNullException.ThrowIfNull(IV, nameof(IV));
 
             using var aes = Aes.Create();
-            lock (Key)
-                aes.Key = Key;
-            lock (IV)
-                aes.IV = IV;
+            aes.Key = Key;
+            aes.IV = IV;
 
             return new CryptoStream(target, aes.CreateDecryptor(), CryptoStreamMode.Read);
         }
