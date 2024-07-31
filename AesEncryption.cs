@@ -19,21 +19,9 @@ namespace AlvinSoft.Cryptography {
         /// <summary>Shorthand for <c>Length == 0</c></summary>
         public bool IsEmpty => Length == 0;
 
-        /// <summary>Copies the password chars to a unicode string</summary>
-        public string PasswordChars {
-            get {
-                IntPtr ptr = IntPtr.Zero;
-                try {
-                    ptr = SecureStringMarshal.SecureStringToGlobalAllocUnicode(SecureString);
-                    return Marshal.PtrToStringUni(ptr);
-                } finally {
-                    Marshal.ZeroFreeGlobalAllocUnicode(ptr);
-                }
-            }
-        }
 
         /// <summary>Returns the unicode bytes of the password. Shorthand for <c>Encoding.Unicode.GetBytes(PasswordChars)</c>.</summary>
-        public byte[] PasswordUnicodeBytes => Encoding.Unicode.GetBytes(PasswordChars);
+        public byte[] PasswordUnicodeBytes => Encoding.Unicode.GetBytes(ToString());
 
         /// <summary>Append <paramref name="c"/> to this password</summary>
         public void AppendChar(char c) => SecureString.AppendChar(c);
@@ -57,6 +45,18 @@ namespace AlvinSoft.Cryptography {
         /// <summary>Create a new instance and assign <paramref name="password"/> to <see cref="SecureString"/></summary>
         public SecurePassword(SecureString password) {
             SecureString = password;
+        }
+
+        /// <summary>Copy the <see cref="SecureString"/> character bytes to a string</summary>
+        /// <returns>The string containing the <see cref="SecureString"/> chars</returns>
+        public override string ToString() {
+            IntPtr ptr = IntPtr.Zero;
+            try {
+                ptr = SecureStringMarshal.SecureStringToGlobalAllocUnicode(SecureString);
+                return Marshal.PtrToStringUni(ptr);
+            } finally {
+                Marshal.ZeroFreeGlobalAllocUnicode(ptr);
+            }
         }
 
         /// <summary>Dispose of this instance</summary>
@@ -89,13 +89,15 @@ namespace AlvinSoft.Cryptography {
         public SecurePassword Password {
             get => _password;
             set {
+
                 _password = value;
+
+                NumbersOnlyPassword = Encoding.ASCII.GetBytes(value.ToString()).All(k => 0x0030 <= k && k <= 0x0039); //use ascii so one byte equals one character (number chars range from 0x0030 to 0x0039 in ASCII)
 
                 if (HasSalt && HasPassword)
                     DeriveKey();
             }
         }
-
 
         /// <summary>The default value assigned to <see cref="SaltSize"/>.</summary>
         public const int DefaultSaltSize = 32;
@@ -128,30 +130,30 @@ namespace AlvinSoft.Cryptography {
             }
         }
 
-        /// <summary>Set to <c>true</c> to generate a password consisting of numbers only</summary>
+        /// <summary>Set to <c>true</c> to generate a password consisting of numbers only.</summary>
         /// <remarks>Assigning a password sets this variable accordingly. Used for password generation.</remarks>
         public bool NumbersOnlyPassword { get; private set; } = false;
 
-
-        private readonly object Sync = new();
-
         /// <summary>Generates new password, salt, IV then derives the key (in this order) based on this instance's generation properties</summary>
-        public void GenerateAndFill() {
+        public void GenerateAndFill(int passwordLength = 16) {
 
+            GeneratePassword(passwordLength);
             GenerateSalt();
             GenerateIv();
             DeriveKey();
 
         }
 
-        /// <summary>Creates a new instance and calls <c>GenerateAndFill()</c></summary>
-        public AesEncryption(bool numbersOnlyPassword = false) {
+        /// <summary>Creates a new instance and calls <c>GenerateAndFill()</c>.</summary>
+        /// <remarks>A new password, salt and IV is generated, then the key is derived.</remarks>
+        public AesEncryption(bool numbersOnlyPassword = false, int passwordLength = 16) {
             NumbersOnlyPassword = numbersOnlyPassword;
-            GenerateAndFill();
+            GenerateAndFill(passwordLength);
         }
 
         /// <summary>Create a new instance, assign password, salt and IV, then derive the key</summary>
         public AesEncryption(string password, byte[] salt, byte[] iv, int derivingIterations = DefaultKeyDeriveIterations) {
+
             _password = new(password);
 
             IV = new byte[iv.Length];
@@ -166,6 +168,25 @@ namespace AlvinSoft.Cryptography {
 
             NumbersOnlyPassword = Encoding.ASCII.GetBytes(password).All(k => 0x0030 <= k && k <= 0x0039); //use ascii so one byte equals one character
         }
+        /// <summary>Create a new instance, assign password, salt and IV, then derive the key.</summary>
+        public AesEncryption(SecurePassword password, byte[] salt, byte[] iv, int derivingIterations = DefaultKeyDeriveIterations) {
+
+            _password = password;
+
+            IV = new byte[iv.Length];
+            Array.Copy(iv, IV, IV.Length);
+
+            Salt = new byte[salt.Length];
+            Array.Copy(salt, Salt, Salt.Length);
+
+            _keyDeriveIterations = derivingIterations;
+
+            DeriveKey();
+
+            NumbersOnlyPassword = Encoding.ASCII.GetBytes(password.ToString()).All(k => 0x0030 <= k && k <= 0x0039); //use ascii so one byte equals one character
+        }
+
+
         /// <summary>Create a new instance and assign key and IV. Does not assign password and salt.</summary>
         public AesEncryption(byte[] key, byte[] iv) {
             Key = key;
@@ -179,53 +200,48 @@ namespace AlvinSoft.Cryptography {
         ///<returns>The encrypted bytes. If the encryption fails, <c>null</c>.</returns>
         public byte[] EncryptString(string data) {
 
-            lock (Sync) {
-                using var aes = Aes.Create();
+            using var aes = Aes.Create();
 
-                aes.Key = Key;
-                aes.IV = IV;
+            aes.Key = Key;
+            aes.IV = IV;
 
-                byte[] encrypted;
-                using (var outputStream = new MemoryStream()) {
-                    using var encryptorStream = new CryptoStream(outputStream, aes.CreateEncryptor(), CryptoStreamMode.Write);
-                    using (var inputStream = new StreamWriter(encryptorStream, Encoding.Unicode)) {
-                        try {
-                            inputStream.Write(data);
-                        } catch {
-                            return null;
-                        }
+            byte[] encrypted;
+            using (var outputStream = new MemoryStream()) {
+                using var encryptorStream = new CryptoStream(outputStream, aes.CreateEncryptor(), CryptoStreamMode.Write);
+                using (var inputStream = new StreamWriter(encryptorStream, Encoding.Unicode)) {
+                    try {
+                        inputStream.Write(data);
+                    } catch {
+                        return null;
                     }
-                    encrypted = outputStream.ToArray();
                 }
-
-                return encrypted;
+                encrypted = outputStream.ToArray();
             }
+
+            return encrypted;
         }
         ///<summary>Encrypts bytes using this instance's cryptographic info.</summary>
         ///<returns>The encrypted bytes. If the encryption fails, <c>null</c>.</returns>
         public byte[] EncryptBytes(byte[] data) {
 
-            lock (Sync) {
+            using var aes = Aes.Create();
 
-                using var aes = Aes.Create();
+            aes.Key = Key;
+            aes.IV = IV;
 
-                aes.Key = Key;
-                aes.IV = IV;
-
-                byte[] encrypted;
-                using (var outputStream = new MemoryStream()) {
-                    using (var encryptorStream = new CryptoStream(outputStream, aes.CreateEncryptor(), CryptoStreamMode.Write)) {
-                        try {
-                            encryptorStream.Write(data);
-                        } catch {
-                            return null;
-                        }
+            byte[] encrypted;
+            using (var outputStream = new MemoryStream()) {
+                using (var encryptorStream = new CryptoStream(outputStream, aes.CreateEncryptor(), CryptoStreamMode.Write)) {
+                    try {
+                        encryptorStream.Write(data);
+                    } catch {
+                        return null;
                     }
-                    encrypted = outputStream.ToArray();
                 }
-
-                return encrypted;
+                encrypted = outputStream.ToArray();
             }
+
+            return encrypted;
         }
         #endregion
         #region Base64
@@ -251,69 +267,69 @@ namespace AlvinSoft.Cryptography {
         ///<returns>The decrypted bytes. If the decryption fails, <c>null</c>.</returns>
         public string DecryptString(byte[] data) {
 
-            lock (Sync) {
+            using var aes = Aes.Create();
 
-                using var aes = Aes.Create();
+            aes.Key = Key;
+            aes.IV = IV;
 
-                aes.Key = Key;
-                aes.IV = IV;
+            string decrypted;
+            using (var inputStream = new MemoryStream(data)) {
 
-                string decrypted;
-                using (var inputStream = new MemoryStream(data)) {
+                using var decryptorStream = new CryptoStream(inputStream, aes.CreateDecryptor(), CryptoStreamMode.Read);
+                using var outputStream = new StreamReader(decryptorStream, Encoding.Unicode);
 
-                    using var decryptorStream = new CryptoStream(inputStream, aes.CreateDecryptor(), CryptoStreamMode.Read);
-                    using var outputStream = new StreamReader(decryptorStream, Encoding.Unicode);
-
-                    try {
-                        decrypted = outputStream.ReadToEnd();
-                    } catch {
-                        return null;
-                    }
+                try {
+                    decrypted = outputStream.ReadToEnd();
+                } catch {
+                    return null;
                 }
-
-                return decrypted;
             }
+
+            return decrypted;
         }
         ///<summary>Decrypts encrypted bytes using this instance's cryptographic info</summary>
         ///<returns>The decrypted bytes. If the decryption fails, <c>null</c>.</returns>
         public byte[] DecryptBytes(byte[] data) {
 
-            lock (Sync) {
+            using var aes = Aes.Create();
 
-                using var aes = Aes.Create();
+            aes.Key = Key;
+            aes.IV = IV;
 
-                aes.Key = Key;
-                aes.IV = IV;
+            byte[] decrypted;
+            using (var inputStream = new MemoryStream(data)) {
 
-                byte[] decrypted;
-                using (var inputStream = new MemoryStream(data)) {
+                using var decryptorStream = new CryptoStream(inputStream, aes.CreateDecryptor(), CryptoStreamMode.Read);
+                using var outputStream = new MemoryStream();
 
-                    using var decryptorStream = new CryptoStream(inputStream, aes.CreateDecryptor(), CryptoStreamMode.Read);
-                    using var outputStream = new MemoryStream();
-
-                    try {
-                        decryptorStream.CopyTo(outputStream);
-                    } catch {
-                        return null;
-                    }
-
-                    decrypted = outputStream.ToArray();
+                try {
+                    decryptorStream.CopyTo(outputStream);
+                } catch {
+                    return null;
                 }
 
-                return decrypted;
+                decrypted = outputStream.ToArray();
             }
+
+            return decrypted;
         }
         #endregion
         #region Streams
         /// <summary>Create a write-mode encryptor stream using this instance's cryptographic info.</summary>
         /// <param name="target">The target stream that the CryptoStream writes to</param>\
         /// <remarks>Make sure to call <c>Dispose()</c> when no longer needed. CryptoStream then also disposes of the target stream (in .NET 8 at least).</remarks>
+        /// <exception cref="ArgumentNullException"/>
         public CryptoStream GetEncryptor(Stream target) {
+
+            ArgumentNullException.ThrowIfNull(Key, nameof(Key));
+            ArgumentNullException.ThrowIfNull(IV, nameof(IV));
 
             var aes = Aes.Create();
 
-            aes.Key = Key;
-            aes.IV = IV;
+            lock (Key)
+                aes.Key = Key;
+            lock (IV)
+                aes.IV = IV;
 
             return new CryptoStream(target, aes.CreateEncryptor(), CryptoStreamMode.Write);
 
@@ -322,36 +338,47 @@ namespace AlvinSoft.Cryptography {
         /// <summary>Create a read-mode encryptor stream using the instance's cryptographic info</summary>
         /// <param name="target">The target stream that the CryptoStream writes to</param>
         /// <remarks>Make sure to call <c>Dispose()</c> when no longer needed. CryptoStream then also disposes of the target stream (in .NET 8 at least).</remarks>
+        /// <exception cref="ArgumentNullException"/>
         public CryptoStream GetDecryptor(Stream target) {
 
+            ArgumentNullException.ThrowIfNull(Key, nameof(Key));
+            ArgumentNullException.ThrowIfNull(IV, nameof(IV));
+
             using var aes = Aes.Create();
-            aes.Key = Key;
-            aes.IV = IV;
+            lock (Key)
+                aes.Key = Key;
+            lock (IV)
+                aes.IV = IV;
 
             return new CryptoStream(target, aes.CreateDecryptor(), CryptoStreamMode.Read);
-
         }
         #endregion
 
+        /// <summary>
+        /// Assign <see cref="Password"/> a newly generated password of length <paramref name="length"/> based on the <see cref="NumbersOnlyPassword"/> property.
+        /// </summary>
+        protected void GeneratePassword(int length = 16) => Password = NumbersOnlyPassword ? GenerateNumberPassword(length) : GenerateLettersPassword(length);
+
         /// <summary>Generate a string consisting of <paramref name="length"/> numbers</summary>
-        public void GenerateNumberPassword(int length) {
+        public static SecurePassword GenerateNumberPassword(int length) {
 
-            Password = new();
+            SecurePassword pass = new();
             for (int i = 0; i < length; i++)
-                Password.AppendChar(Random.Shared.Next(0, 10).ToString()[0]);
+                pass.AppendChar(Random.Shared.Next(0, 10).ToString()[0]);
 
-            NumbersOnlyPassword = true;
+            return pass;
         }
 
         /// <summary>Generate a random combination string of the most common characters</summary>
-        public void GenerateLettersPassword(int length) {
+        public static SecurePassword GenerateLettersPassword(int length) {
 
             char[] validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789?!@#$%^&*()_+-={}[];\'\"\\,./<>\\|`~".ToCharArray();
-            Password = new();
+            SecurePassword pass = new();
             for (int i = 0; i < length; i++)
-                Password.AppendChar(validChars[Random.Shared.Next(0, validChars.Length)]);
+                pass.AppendChar(validChars[Random.Shared.Next(0, validChars.Length)]);
 
-            NumbersOnlyPassword = false;
+            return pass;
+
         }
         /// <summary>Assign a newly generate IV</summary>
         public void GenerateIv() {

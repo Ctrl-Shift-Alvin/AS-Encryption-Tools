@@ -2,13 +2,13 @@
 using System.Text;
 using System.Security.Cryptography;
 using System.Runtime.Versioning;
-using System.Buffers.Binary;
+using System.Linq;
 
 namespace AlvinSoft.Cryptography {
 
     /// <summary>Abstracts <see cref="RSA"/> and provides simple methods for importing/exporting public/private keys, and encrypting/decrypting.</summary>
     [UnsupportedOSPlatform("browser")]
-    public class RsaEncryption(RSAKey key) {
+    public class RSAEncryption(RSAKey key) {
         /// <summary>The key size in bits used to initialize the <see cref="RSACryptoServiceProvider"/></summary>
         public int RSAKeySize { get; } = 2048;
 
@@ -16,10 +16,10 @@ namespace AlvinSoft.Cryptography {
         public RSAKey Key = key;
 
         /// <summary>Create a new RSA instance and generate a key</summary>
-        public RsaEncryption() : this(new RSAKey()) { }
+        public RSAEncryption() : this(new RSAKey()) { }
 
         /// <summary>Create a new RSA instance and import <paramref name="parameters"/></summary>
-        public RsaEncryption(RSAParameters parameters) : this(new RSAKey(parameters)) { }
+        public RSAEncryption(RSAParameters parameters) : this(new RSAKey(parameters)) { }
 
 
         /// <summary>Encrypt <paramref name="data"/> using this instance's public key</summary>
@@ -158,7 +158,7 @@ namespace AlvinSoft.Cryptography {
 
             byte[] bytes = rsa.ExportPkcs8PrivateKey();
 
-            return AddPrefix(0, bytes);
+            return Enumerable.Prepend<byte>(bytes, 0).ToArray(); //no idea why, but the extension IEnumerable<T>.Prepend(this IEnumerable<T> source, byte value) does not compile... some weird bug I guess...
 
         }
 
@@ -172,7 +172,7 @@ namespace AlvinSoft.Cryptography {
             if (key[0] != 0)
                 throw new ArgumentException("The provided key is not a private key!", nameof(key));
 
-                using RSA rsa = RSA.Create();
+            using RSA rsa = RSA.Create();
             rsa.ImportPkcs8PrivateKey(key.AsSpan(1), out _);
 
             return new(rsa.ExportParameters(true));
@@ -193,7 +193,7 @@ namespace AlvinSoft.Cryptography {
 
             byte[] bytes = rsa.ExportRSAPublicKey();
 
-            return AddPrefix(1, bytes);
+            return Enumerable.Prepend<byte>(bytes, 1).ToArray(); //ugh... see line 161
 
         }
         /// <summary>
@@ -217,7 +217,7 @@ namespace AlvinSoft.Cryptography {
         #region Base64
 
         /// <summary>
-        /// Export the private key as a Base64 string
+        /// Export the private key as a Base64 string (PEM)
         /// </summary>
         /// <remarks>The string always starts with <c>-----BEGIN RSA PRIVATE KEY-----</c> and ends with <c>-----END RSA PRIVATE KEY-----</c></remarks>
         /// <returns>The encoded Base64 string</returns>
@@ -233,9 +233,21 @@ namespace AlvinSoft.Cryptography {
         }
 
         /// <summary>
+        /// Import a Base64 encoded (PEM) private key
+        /// </summary>
+        public static RSAKey ImportPrivateKeyBase64(string privateKey) {
+
+            using RSA rsa = RSA.Create();
+            rsa.ImportFromPem(privateKey);
+
+            return new(rsa.ExportParameters(true));
+
+        }
+
+        /// <summary>
         /// Export the public key as a Base64 string
         /// </summary>
-        /// <remarks>The string always starts with <c>-----BEGIN RSA PRIVATE KEY-----</c> and ends with <c>-----END RSA PRIVATE KEY-----</c></remarks>
+        /// <remarks>The string always starts with <c>-----BEGIN RSA PUBLIC KEY-----</c> and ends with <c>-----END RSA PUBLIC KEY-----</c></remarks>
         /// <returns>The encoded Base64 string</returns>
         public string ExportPublicKeyBase64() {
 
@@ -246,6 +258,18 @@ namespace AlvinSoft.Cryptography {
             rsa.ImportParameters(Key);
 
             return rsa.ExportRSAPublicKeyPem();
+        }
+
+        /// <summary>
+        /// Import a Base64 encoded (PEM) public key
+        /// </summary>
+        public static RSAKey ImportPublicKeyBase64(string publicKey) {
+
+            using RSA rsa = RSA.Create();
+            rsa.ImportFromPem(publicKey);
+
+            return new(rsa.ExportParameters(false));
+
         }
 
         #endregion

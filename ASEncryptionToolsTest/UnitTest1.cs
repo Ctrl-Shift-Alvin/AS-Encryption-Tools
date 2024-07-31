@@ -1,5 +1,5 @@
-using AlvinSoft;
 using System.Text;
+using System.Security.Cryptography;
 
 namespace ASEncryptionToolsTest {
     [TestClass]
@@ -9,8 +9,8 @@ namespace ASEncryptionToolsTest {
         [TestMethod("RSAKey Export/Import Test")]
         public void Test1() {
 
-            RsaEncryption rsa1 = new();
-            RsaEncryption rsa2 = new(rsa1.Key);
+            RSAEncryption rsa1 = new();
+            RSAEncryption rsa2 = new(rsa1.Key);
 
             Assert.IsTrue(TestHelper.TestRsa(rsa1, rsa2, true));
 
@@ -27,13 +27,77 @@ namespace ASEncryptionToolsTest {
             TestHelper.TestRsa(rsa1, rsa2, true);
 
         }
-        
+
+        [TestMethod("RSAEncryption Encrypt/Decrypt Test")]
+        public void Test2() {
+
+            RSAEncryption rsa1 = new();
+            RSAEncryption rsa2 = new(rsa1.Key);
+
+            TestHelper.TestRsa(rsa1, rsa2, true);
+
+        }
+
+        [TestMethod("RSAEncryption Encrypt/Decrypt async Test")]
+        public async Task Test3() {
+
+            RSAEncryption rsa1 = new();
+            RSAEncryption rsa2 = new(rsa1.Key);
+
+            Task task1 = Task.Run(() => TestHelper.TestRsa(rsa1, rsa2, false));
+            Task task2 = Task.Run(() => TestHelper.TestRsa(rsa2, rsa1, false));
+
+            await Task.WhenAll(task1, task2);
+
+        }
+
 
         #endregion
 
         #region Aes
 
+        [TestMethod("SecurePassword Test")]
         public void AesTest1() {
+
+            string pass = TestHelper.GeneratePassword();;
+            SecurePassword securePass = new();;
+
+            //test empty constructor, copy string
+            securePass.AppendString(pass);
+
+            Assert.AreEqual(pass, securePass.ToString());
+            securePass.Dispose();
+
+            //test string constructor
+            securePass = new(pass);
+            Assert.AreEqual(pass, securePass.ToString());
+
+            //test export
+            byte[] passBytes = securePass.PasswordUnicodeBytes;
+            Assert.AreEqual(pass, Encoding.Unicode.GetString(passBytes));
+            securePass.Dispose();
+
+        }
+
+        [TestMethod("AesEncryption Test")]
+        public void AesTest2() {
+
+            AesEncryption encryption1 = new();
+            AesEncryption encryption2 = new(encryption1.Password, encryption1.Salt, encryption1.IV);
+
+            TestHelper.TestAes(encryption1, encryption2);
+
+        }
+        [TestMethod("AesEncryption async test")]
+        public async Task AesTest3() {
+
+            AesEncryption encryption1 = new();
+            AesEncryption encryption2 = new(encryption1.Password, encryption1.Salt, encryption1.IV);
+
+            Task task1 = Task.Run(() => TestHelper.TestAes(encryption1, encryption2, false));
+            Task task2 = Task.Run(() => TestHelper.TestAes(encryption2, encryption1, false));
+
+            await Task.WhenAll(task1, task2);
 
         }
 
@@ -44,14 +108,14 @@ namespace ASEncryptionToolsTest {
 
     public static class TestHelper {
 
-        static byte[] GenerateBytes(int maxLength = 56) {
+        public static byte[] GenerateBytes(int maxLength = 56) {
             byte[] bytes = new byte[Random.Shared.Next(1, maxLength)];
             Random.Shared.NextBytes(bytes);
             return bytes;
         }
 
-        static string GeneratePassword(int charLength = 56) {
-            char[] validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789?!@#$%^&*()_+-={}[];\'\"\\,./<>\\|`~".ToCharArray();
+        public static string GeneratePassword(int charLength = 56) {
+            char[] validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();
             StringBuilder password = new();
             for (int i = 0; i < charLength; i++)
                 password.Append(validChars[Random.Shared.Next(0, validChars.Length)]);
@@ -59,7 +123,7 @@ namespace ASEncryptionToolsTest {
             return password.ToString();
         }
 
-        public static bool TestRsa(RsaEncryption encryptRsa, RsaEncryption decryptRsa, bool bothWays) {
+        public static bool TestRsa(RSAEncryption encryptRsa, RSAEncryption decryptRsa, bool bothWays) {
             //test1
             byte[] unencrypted = GenerateBytes();
 
@@ -70,11 +134,9 @@ namespace ASEncryptionToolsTest {
             if (!Enumerable.SequenceEqual(unencrypted, decrypted))
                 return false;
 
-            encrypted = null;
-            decrypted = null;
-
+            //test 2?
             if (bothWays) {
-                //test 2
+
                 encrypted = decryptRsa.EncryptBytes(unencrypted);
 
                 decrypted = encryptRsa.DecryptBytes(encrypted);
@@ -93,17 +155,132 @@ namespace ASEncryptionToolsTest {
             if (unencryptedString != decryptedString)
                 return false;
 
-            encrypted = null;
-            decrypted = null;
-
+            
+            //test 4
             if (bothWays) {
-                //test 4
                 encrypted = decryptRsa.EncryptString(unencryptedString);
 
                 decryptedString = encryptRsa.DecryptString(encrypted);
 
                 if (unencryptedString != decryptedString)
                     return false;
+            }
+
+            return true;
+
+        }
+
+        public static bool TestAes(AesEncryption encryptAes, AesEncryption decryptAes, bool bothWays = true) {
+
+            //test encrypt/decrypt bytes
+            byte[] unencrypted = GenerateBytes();
+            byte[] encrypted = encryptAes.EncryptBytes(unencrypted);
+            byte[] decrypted = decryptAes.DecryptBytes(encrypted);
+
+            CollectionAssert.AreEqual(unencrypted, decrypted);
+
+            if (bothWays) {
+
+                unencrypted = GenerateBytes();
+                encrypted = decryptAes.EncryptBytes(unencrypted);
+                decrypted = encryptAes.DecryptBytes(encrypted);
+
+                CollectionAssert.AreEqual(unencrypted, decrypted);
+
+            }
+
+            //test encrypt/decrypt string
+            string unencryptedString = GeneratePassword();
+            byte[] encryptedString = encryptAes.EncryptString(unencryptedString);
+            string decryptedString = decryptAes.DecryptString(encryptedString);
+
+            Assert.AreEqual(unencryptedString, decryptedString);
+
+            if (bothWays) {
+
+                unencryptedString = GeneratePassword();
+                encryptedString = decryptAes.EncryptString(unencryptedString);
+                decryptedString = encryptAes.DecryptString(encryptedString);
+
+                Assert.AreEqual(unencryptedString, decryptedString);
+
+            }
+
+            //test encrypt/decrypt stream
+            unencrypted = GenerateBytes();
+
+            encrypted = encryptAes.EncryptBytes(unencrypted);
+
+            string fileName;
+            do {
+                fileName = Directory.GetCurrentDirectory() + '\\' + GeneratePassword(4) + ".aes";
+            } while (File.Exists(fileName));
+
+
+            //encrypt and send to file
+            FileStream file = new(fileName, FileMode.Create, FileAccess.Write);
+            CryptoStream encryptor = encryptAes.GetEncryptor(file);
+
+            encryptor.Write(unencrypted, 0, unencrypted.Length);
+            encryptor.FlushFinalBlock();
+
+            encryptor.Dispose();
+
+
+            file = new(fileName, FileMode.Open, FileAccess.Read);
+            CryptoStream decryptor = decryptAes.GetDecryptor(file);
+
+            byte[] buffer = new byte[1024];
+            int bytesRead, bytesReadTotal = 0;
+            while ((bytesRead = decryptor.Read(buffer, bytesReadTotal, 16)) > 0)
+                bytesReadTotal += bytesRead;
+            
+            decryptor.Dispose();
+            File.Delete(fileName);
+
+            Array.Resize(ref buffer, bytesReadTotal);
+
+            CollectionAssert.AreEqual(buffer, unencrypted);
+
+
+            if (bothWays) {
+
+                //test encrypt/decrypt stream
+                unencrypted = GenerateBytes();
+
+                encrypted = encryptAes.EncryptBytes(unencrypted);
+
+                do {
+                    fileName = Directory.GetCurrentDirectory() + '\\' + GeneratePassword(4) + ".aes";
+                } while (File.Exists(fileName));
+
+
+                //encrypt and send to file
+                file = new(fileName, FileMode.Create, FileAccess.Write);
+                encryptor = decryptAes.GetEncryptor(file);
+
+                encryptor.Write(unencrypted, 0, unencrypted.Length);
+                encryptor.FlushFinalBlock();
+
+                encryptor.Dispose();
+
+
+                file = new(fileName, FileMode.Open, FileAccess.Read);
+                decryptor = encryptAes.GetDecryptor(file);
+
+                buffer = new byte[1024];
+                bytesReadTotal = 0;
+                while ((bytesRead = decryptor.Read(buffer, bytesReadTotal, 16)) > 0)
+                    bytesReadTotal += bytesRead;
+
+                decryptor.Dispose();
+                File.Delete(fileName);
+
+                Array.Resize(ref buffer, bytesReadTotal);
+
+                CollectionAssert.AreEqual(buffer, unencrypted);
+
+
             }
 
             return true;
