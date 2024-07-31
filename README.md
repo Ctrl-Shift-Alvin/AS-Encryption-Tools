@@ -55,12 +55,7 @@ You can also access methods that the library uses internally, for convenience:
 
 ```public static string GenerateNumberPassword(int length)```: Generates a string of random number chars
 
-```public static string GeneratePassword(int length)```: Generates a string of chars randomly picked out of ```abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789?!@#$%^&*()_+-={}[];'",./<>|`\~```
-
-```public static byte[] GenerateIv()```: Generates a random IV
-
-```public static byte[] DeriveKey(string password, byte[] salt, int iterations)```: Uses ```Rfc2898DeriveBytes``` to derive a 32-byte array, with the use of the password, salt and iterates ```iterations``` times
-
+```public static string GenerateLettersPassword(int length)```: Generates a string of chars randomly picked out of ```abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789?!@#$%^&*()_+-={}[];'",./<>|`\~```
 
 ## RsaEncryption
 
