@@ -7,7 +7,7 @@ To start, include the library in your code:
 There are 2 main classes in the library:
 
 ```AesEncryption``` and
-```RsaEncryption```
+```RSAEncryption```
 
 
 ## AesEncryption
