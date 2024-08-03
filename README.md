@@ -68,14 +68,14 @@ To use existing rsa parameters, use the following. It can contain a private key,
 To import any existing key, use the following:
 
 ```
-RSAKey key = GetMeAKeyDamnIt();
+RSAKey key = GetMeAKeyDamnIt(); //not an actual method
 var rsaEncryption = new RSAEncryption(key);
 ```
 
 or alternatively
 
 ```
-RSAParameters key = GETMEADAMNKEY();
+RSAParameters key = GETMEADAMNKEY(); //also not an actual method
 var rsaEncryption = new RSAEncryption(key); //shorthand for new RsaEncryption(new RSAKey(key))
 ```
 
@@ -104,7 +104,7 @@ To generate random public keys and private keys, use the empty constructor: ```v
 To create an instance that represents an existing ```RSAParameters``` instance, use the following constructor:
 
 ```
-RSAParameters key = ITOLDYOUTOGETMEAFREAKINGKEY();
+RSAParameters key = ITOLDYOUTOGETMEAFREAKINGKEY(); //definitely not an actual method
 var rsaKey = new RSA(key);
 ```
 
