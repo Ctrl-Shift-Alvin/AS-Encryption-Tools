@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+	<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <AssemblyTitle>AlvinSoft Encryption Tools</AssemblyTitle>
     <Product>ASEncryptionTools</Product>
     <Copyright>Copyright © AlvinSoft 2024</Copyright>
