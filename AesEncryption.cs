@@ -59,22 +59,28 @@ namespace AlvinSoft.Cryptography {
             }
         }
 
+        /// <summary>
+        /// Check if the underlying unicode chars of this instance and <paramref name="obj"/> are identical.
+        /// </summary>
+        /// <remarks><paramref name="obj"/> can be a <see cref="SecurePassword"/>, <see cref="SecureString"/>, <see cref="string"/> or <see cref="char"/>[] instance.</remarks>
+        /// <param name="obj"></param>
+        /// <returns>true if <paramref name="obj"/> is a text type and the char bytes are identical.</returns>
         public override bool Equals(object obj) {
 
-            if (obj is SecurePassword password) {
+            if (obj is SecurePassword securePassword) {
 
                 nint thisPtr = IntPtr.Zero;
                 nint objPtr = IntPtr.Zero;
                 try {
 
                     thisPtr = SecureStringMarshal.SecureStringToCoTaskMemUnicode(SecureString);
-                    objPtr = SecureStringMarshal.SecureStringToCoTaskMemUnicode(password.SecureString);
+                    objPtr = SecureStringMarshal.SecureStringToCoTaskMemUnicode(securePassword.SecureString);
 
                     if (thisPtr == IntPtr.Zero)
                         return objPtr == IntPtr.Zero;
 
                     int thisLength = Length;
-                    int objLength = password.Length;
+                    int objLength = securePassword.Length;
                     if (thisLength != objLength)
                         return false;
 
@@ -100,20 +106,59 @@ namespace AlvinSoft.Cryptography {
 
             }
 
-            if (obj is string pass) {
+            if (obj is SecureString secureString) {
 
                 nint thisPtr = IntPtr.Zero;
                 nint objPtr = IntPtr.Zero;
                 try {
 
                     thisPtr = SecureStringMarshal.SecureStringToCoTaskMemUnicode(SecureString);
-                    objPtr = Marshal.StringToCoTaskMemUni(pass);
+                    objPtr = SecureStringMarshal.SecureStringToCoTaskMemUnicode(secureString);
 
                     if (thisPtr == IntPtr.Zero)
                         return objPtr == IntPtr.Zero;
 
                     int thisLength = Length;
-                    int objLength = pass.Length;
+                    int objLength = secureString.Length;
+                    if (thisLength != objLength)
+                        return false;
+
+                    unsafe {
+
+                        char* thisStart = (char*)thisPtr.ToPointer();
+                        char* objStart = (char*)objPtr.ToPointer();
+
+                        for (int i = 0; i < thisLength; i++) {
+                            if (thisStart[i] != objStart[i])
+                                return false;
+                        }
+                    }
+
+                    return true;
+
+
+                } finally {
+
+                    Marshal.ZeroFreeCoTaskMemUnicode(thisPtr);
+                    Marshal.ZeroFreeCoTaskMemUnicode(objPtr);
+                }
+
+            }
+
+            if (obj is string passwordString) {
+
+                nint thisPtr = IntPtr.Zero;
+                nint objPtr = IntPtr.Zero;
+                try {
+
+                    thisPtr = SecureStringMarshal.SecureStringToCoTaskMemUnicode(SecureString);
+                    objPtr = Marshal.StringToCoTaskMemUni(passwordString);
+
+                    if (thisPtr == IntPtr.Zero)
+                        return objPtr == IntPtr.Zero;
+
+                    int thisLength = Length;
+                    int objLength = passwordString.Length;
                     if (thisLength != objLength)
                         return false;
 
@@ -138,17 +183,17 @@ namespace AlvinSoft.Cryptography {
                 }
             }
 
-            if (obj is char[] pw) {
+            if (obj is char[] passwordChars) {
                 nint thisPtr = IntPtr.Zero;
                 try {
 
                     thisPtr = SecureStringMarshal.SecureStringToCoTaskMemUnicode(SecureString);
 
                     if (thisPtr == IntPtr.Zero)
-                        return pw == null;
+                        return passwordChars == null;
 
                     int thisLength = Length;
-                    int objLength = pw.Length;
+                    int objLength = passwordChars.Length;
                     if (thisLength != objLength)
                         return false;
 
@@ -157,7 +202,7 @@ namespace AlvinSoft.Cryptography {
                         char* thisStart = (char*)thisPtr.ToPointer();
 
                         for (int i = 0; i < thisLength; i++) {
-                            if (thisStart[i] != pw[i])
+                            if (thisStart[i] != passwordChars[i])
                                 return false;
                         }
                     }
@@ -174,7 +219,7 @@ namespace AlvinSoft.Cryptography {
             return false;
         }
 
-        /// <summary>Dispose of this instance</summary>
+        /// <summary>Disposes of this instance</summary>
         public void Dispose() {
             SecureString?.Dispose();
             GC.SuppressFinalize(this);
