@@ -50,13 +50,128 @@ namespace AlvinSoft.Cryptography {
         /// <summary>Copy the <see cref="SecureString"/> character bytes to a string</summary>
         /// <returns>The string containing the <see cref="SecureString"/> chars</returns>
         public override string ToString() {
-            IntPtr ptr = IntPtr.Zero;
+            nint ptr = IntPtr.Zero;
             try {
                 ptr = SecureStringMarshal.SecureStringToGlobalAllocUnicode(SecureString);
                 return Marshal.PtrToStringUni(ptr);
             } finally {
                 Marshal.ZeroFreeGlobalAllocUnicode(ptr);
             }
+        }
+
+        public override bool Equals(object obj) {
+
+            if (obj is SecurePassword password) {
+
+                nint thisPtr = IntPtr.Zero;
+                nint objPtr = IntPtr.Zero;
+                try {
+
+                    thisPtr = SecureStringMarshal.SecureStringToCoTaskMemUnicode(SecureString);
+                    objPtr = SecureStringMarshal.SecureStringToCoTaskMemUnicode(password.SecureString);
+
+                    if (thisPtr == IntPtr.Zero)
+                        return objPtr == IntPtr.Zero;
+
+                    int thisLength = Length;
+                    int objLength = password.Length;
+                    if (thisLength != objLength)
+                        return false;
+
+                    unsafe {
+
+                        char* thisStart = (char*)thisPtr.ToPointer();
+                        char* objStart = (char*)objPtr.ToPointer();
+
+                        for (int i = 0; i < thisLength; i++) {
+                            if (thisStart[i] != objStart[i])
+                                return false;
+                        }
+                    }
+
+                    return true;
+
+
+                } finally {
+                
+                    Marshal.ZeroFreeCoTaskMemUnicode(thisPtr);
+                    Marshal.ZeroFreeCoTaskMemUnicode(objPtr);
+                }
+
+            }
+
+            if (obj is string pass) {
+
+                nint thisPtr = IntPtr.Zero;
+                nint objPtr = IntPtr.Zero;
+                try {
+
+                    thisPtr = SecureStringMarshal.SecureStringToCoTaskMemUnicode(SecureString);
+                    objPtr = Marshal.StringToCoTaskMemUni(pass);
+
+                    if (thisPtr == IntPtr.Zero)
+                        return objPtr == IntPtr.Zero;
+
+                    int thisLength = Length;
+                    int objLength = pass.Length;
+                    if (thisLength != objLength)
+                        return false;
+
+                    unsafe {
+
+                        char* thisStart = (char*)thisPtr.ToPointer();
+                        char* objStart = (char*)objPtr.ToPointer();
+
+                        for (int i = 0; i < thisLength; i++) {
+                            if (thisStart[i] != objStart[i])
+                                return false;
+                        }
+                    }
+
+                    return true;
+
+
+                } finally {
+
+                    Marshal.ZeroFreeCoTaskMemUnicode(thisPtr);
+                    Marshal.FreeCoTaskMem(objPtr);
+                }
+            }
+
+            if (obj is char[] pw) {
+                nint thisPtr = IntPtr.Zero;
+                try {
+
+                    thisPtr = SecureStringMarshal.SecureStringToCoTaskMemUnicode(SecureString);
+
+                    if (thisPtr == IntPtr.Zero)
+                        return pw == null;
+
+                    int thisLength = Length;
+                    int objLength = pw.Length;
+                    if (thisLength != objLength)
+                        return false;
+
+                    unsafe {
+
+                        char* thisStart = (char*)thisPtr.ToPointer();
+
+                        for (int i = 0; i < thisLength; i++) {
+                            if (thisStart[i] != pw[i])
+                                return false;
+                        }
+                    }
+
+                    return true;
+
+
+                } finally {
+
+                    Marshal.ZeroFreeCoTaskMemUnicode(thisPtr);
+                }
+            }
+
+            return false;
         }
 
         /// <summary>Dispose of this instance</summary>

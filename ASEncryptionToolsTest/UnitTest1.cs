@@ -59,8 +59,8 @@ namespace ASEncryptionToolsTest {
         [TestMethod("SecurePassword Test")]
         public void AesTest1() {
 
-            string pass = TestHelper.GeneratePassword();;
-            SecurePassword securePass = new();;
+            string pass = TestHelper.GeneratePassword();
+            SecurePassword securePass = new();
 
             //test empty constructor, copy string
             securePass.AppendString(pass);
@@ -76,6 +76,16 @@ namespace ASEncryptionToolsTest {
             byte[] passBytes = securePass.PasswordUnicodeBytes;
             Assert.AreEqual(pass, Encoding.Unicode.GetString(passBytes));
             securePass.Dispose();
+
+            //test .Equals()
+            pass = TestHelper.GeneratePassword();
+            securePass = new(pass);
+
+            SecurePassword securePass1 = new(pass);
+
+            Assert.IsTrue(securePass.Equals(securePass1));
+            Assert.IsTrue(securePass.Equals(pass));
+            Assert.IsTrue(securePass.Equals(pass.ToCharArray()));
 
         }
 
