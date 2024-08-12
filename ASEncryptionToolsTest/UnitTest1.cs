@@ -83,10 +83,10 @@ namespace ASEncryptionToolsTest {
 
             SecurePassword securePass1 = new(pass);
 
-            Assert.IsTrue(securePass.Equals(securePass1));
-            Assert.IsTrue(securePass.Equals(securePass1.SecureString));
-            Assert.IsTrue(securePass.Equals(pass));
-            Assert.IsTrue(securePass.Equals(pass.ToCharArray()));
+            Assert.IsTrue(securePass == securePass1);
+            Assert.IsTrue(securePass == securePass1.SecureString);
+            Assert.IsTrue(securePass == pass);
+            Assert.IsTrue(securePass == pass.ToCharArray());
 
             //test negative .Equals()
             pass = TestHelper.GeneratePassword();

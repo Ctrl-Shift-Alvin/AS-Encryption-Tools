@@ -34,11 +34,11 @@ namespace AlvinSoft.Cryptography {
 
         /// <summary>Creates an empty instance</summary>
         public SecurePassword() => SecureString = new();
-        
+
         /// <summary>Create a new instance and copy the <paramref name="password"/> chars to <see cref="SecureString"/></summary>
         public SecurePassword(string password) {
             SecureString = new();
-            foreach(char c in password)
+            foreach (char c in password)
                 SecureString.AppendChar(c);
         }
 
@@ -99,7 +99,7 @@ namespace AlvinSoft.Cryptography {
 
 
                 } finally {
-                
+
                     Marshal.ZeroFreeCoTaskMemUnicode(thisPtr);
                     Marshal.ZeroFreeCoTaskMemUnicode(objPtr);
                 }
@@ -219,6 +219,43 @@ namespace AlvinSoft.Cryptography {
             return false;
         }
 
+        #region Operators
+        /// <returns>true if both sides contain the same unicode bytes; otherwise false.</returns>
+        public static bool operator ==(SecurePassword left, SecurePassword right) => left.Equals(right);
+        /// <returns>false if both sides contain the same unicode bytes; otherwise true.</returns>
+        public static bool operator !=(SecurePassword left, SecurePassword right) => !left.Equals(right);
+
+        /// <returns>true if both sides contain the same unicode bytes; otherwise false.</returns>
+        public static bool operator ==(SecurePassword left, string right) => left.Equals(right);
+        /// <returns>false if both sides contain the same unicode bytes; otherwise true.</returns>
+        public static bool operator !=(SecurePassword left, string right) => !left.Equals(right);
+
+        /// <returns>true if both sides contain the same unicode bytes; otherwise false.</returns>
+        public static bool operator ==(string left, SecurePassword right) => right.Equals(left);
+        /// <returns>false if both sides contain the same unicode bytes; otherwise true.</returns>
+        public static bool operator !=(string left, SecurePassword right) => !right.Equals(left);
+
+        /// <returns>true if both sides contain the same unicode bytes; otherwise false.</returns>
+        public static bool operator ==(SecureString left, SecurePassword right) => right.Equals(left);
+        /// <returns>false if both sides contain the same unicode bytes; otherwise true.</returns>
+        public static bool operator !=(SecureString left, SecurePassword right) => !right.Equals(left);
+
+        /// <returns>true if both sides contain the same unicode bytes; otherwise false.</returns>
+        public static bool operator ==(SecurePassword left, SecureString right) => left.Equals(right);
+        /// <returns>false if both sides contain the same unicode bytes; otherwise true.</returns>
+        public static bool operator !=(SecurePassword left, SecureString right) => !left.Equals(right);
+
+        /// <returns>true if both sides contain the same unicode bytes; otherwise false.</returns>
+        public static bool operator ==(char[] left, SecurePassword right) => right.Equals(left);
+        /// <returns>false if both sides contain the same unicode bytes; otherwise true.</returns>
+        public static bool operator !=(char[] left, SecurePassword right) => !right.Equals(left);
+
+        /// <returns>true if both sides contain the same unicode bytes; otherwise false.</returns>
+        public static bool operator ==(SecurePassword left, char[] right) => left.Equals(right);
+        /// <returns>false if both sides contain the same unicode bytes; otherwise true.</returns>
+        public static bool operator !=(SecurePassword left, char[] right) => !left.Equals(right);
+
+        #endregion
         /// <summary>Disposes of this instance</summary>
         public void Dispose() {
             SecureString?.Dispose();
