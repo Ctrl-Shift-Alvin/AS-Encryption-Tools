@@ -8,46 +8,46 @@ using System.Text;
 
 namespace AlvinSoft.Cryptography {
 
-    /// <summary>Represents a password securely stored in memory</summary>
+    /// <summary>Represents a password securely stored in memory.</summary>
     public class SecurePassword : IDisposable {
-        /// <summary>The <see cref="System.Security.SecureString"/> instance that is storing the password</summary>
+        /// <summary>The <see cref="System.Security.SecureString"/> instance that is storing the password.</summary>
         public SecureString SecureString { get; private set; }
 
-        /// <summary>The character password's length</summary>
+        /// <summary>The character password's length.</summary>
         public int Length => SecureString.Length;
 
-        /// <summary>Shorthand for <c>Length == 0</c></summary>
+        /// <summary>Shorthand for <c>Length == 0</c>.</summary>
         public bool IsEmpty => Length == 0;
 
 
         /// <summary>Returns the unicode bytes of the password. Shorthand for <c>Encoding.Unicode.GetBytes(PasswordChars)</c>.</summary>
         public byte[] PasswordUnicodeBytes => Encoding.Unicode.GetBytes(ToString());
 
-        /// <summary>Append <paramref name="c"/> to this password</summary>
+        /// <summary>Append <paramref name="c"/> to this password.</summary>
         public void AppendChar(char c) => SecureString.AppendChar(c);
 
-        /// <summary>Append <paramref name="s"/> to this password</summary>
+        /// <summary>Append <paramref name="s"/> to this password.</summary>
         public void AppendString(string s) {
             foreach (char c in s)
                 AppendChar(c);
         }
 
-        /// <summary>Creates an empty instance</summary>
+        /// <summary>Creates an empty instance.</summary>
         public SecurePassword() => SecureString = new();
 
-        /// <summary>Create a new instance and copy the <paramref name="password"/> chars to <see cref="SecureString"/></summary>
+        /// <summary>Create a new instance and copy the <paramref name="password"/> chars to <see cref="SecureString"/>.</summary>
         public SecurePassword(string password) {
             SecureString = new();
             foreach (char c in password)
                 SecureString.AppendChar(c);
         }
 
-        /// <summary>Create a new instance and assign <paramref name="password"/> to <see cref="SecureString"/></summary>
+        /// <summary>Create a new instance and assign <paramref name="password"/> to <see cref="SecureString"/>.</summary>
         public SecurePassword(SecureString password) {
             SecureString = password;
         }
 
-        /// <summary>Copy the <see cref="SecureString"/> character bytes to a string</summary>
+        /// <summary>Copy the <see cref="SecureString"/> character bytes to a string.</summary>
         /// <returns>The string containing the <see cref="SecureString"/> chars</returns>
         public override string ToString() {
             nint ptr = IntPtr.Zero;
@@ -267,17 +267,17 @@ namespace AlvinSoft.Cryptography {
     /// <summary>Represents the Key and IV of an Aes encryption. Optionally holds a password and a salt to derive the key from.</summary>
     public class AesEncryption : IDisposable {
 
-        /// <summary>The Aes key bytes</summary>
+        /// <summary>The Aes key bytes.</summary>
         /// <remarks>To import a key/IV/salt, use the constructor.</remarks>
         public byte[] Key { get; private set; }
-        /// <summary>The initialization vector bytes</summary>
+        /// <summary>The initialization vector bytes.</summary>
         public byte[] IV { get; private set; }
         /// <summary>The salt bytes used to derive the <c>Key</c> using <see cref="Password"/>.</summary>
         public byte[] Salt { get; private set; }
 
-        /// <summary>Shorthand for <c>!Password.IsEmpty</c></summary>
+        /// <summary>Shorthand for <c>!Password.IsEmpty</c>.</summary>
         public bool HasPassword => !Password.IsEmpty;
-        /// <summary>Shorthand for <c>Salt != null</c></summary>
+        /// <summary>Shorthand for <c>Salt != null</c>.</summary>
         public bool HasSalt => Salt != null;
 
         private SecurePassword _password;
@@ -331,7 +331,7 @@ namespace AlvinSoft.Cryptography {
         /// <remarks>Assigning a password sets this variable accordingly. Used for password generation.</remarks>
         public bool NumbersOnlyPassword { get; private set; } = false;
 
-        /// <summary>Generates new password, salt, IV then derives the key (in this order) based on this instance's generation properties</summary>
+        /// <summary>Generates new password, salt, IV then derives the key (in this order) based on this instance's generation properties.</summary>
         public void GenerateAndFill(int passwordLength = 16) {
 
             GeneratePassword(passwordLength);
@@ -348,7 +348,7 @@ namespace AlvinSoft.Cryptography {
             GenerateAndFill(passwordLength);
         }
 
-        /// <summary>Create a new instance, assign password, salt and IV, then derive the key</summary>
+        /// <summary>Create a new instance, assign password, salt and IV, then derive the key.</summary>
         public AesEncryption(string password, byte[] salt, byte[] iv, int derivingIterations = DefaultKeyDeriveIterations) {
 
             _password = new(password);
@@ -530,7 +530,7 @@ namespace AlvinSoft.Cryptography {
 
         }
 
-        /// <summary>Create a read-mode encryptor stream using the instance's cryptographic info</summary>
+        /// <summary>Create a read-mode encryptor stream using the instance's cryptographic info.</summary>
         /// <param name="target">The target stream that the CryptoStream writes to</param>
         /// <remarks>Make sure to call <c>Dispose()</c> when no longer needed. CryptoStream then also disposes of the target stream (in .NET 8 at least).</remarks>
         /// <exception cref="ArgumentNullException"/>
@@ -552,7 +552,7 @@ namespace AlvinSoft.Cryptography {
         /// </summary>
         protected void GeneratePassword(int length = 16) => Password = NumbersOnlyPassword ? GenerateNumberPassword(length) : GenerateLettersPassword(length);
 
-        /// <summary>Generate a string consisting of <paramref name="length"/> numbers</summary>
+        /// <summary>Generate a string consisting of <paramref name="length"/> numbers.</summary>
         public static SecurePassword GenerateNumberPassword(int length) {
 
             SecurePassword pass = new();
@@ -562,7 +562,7 @@ namespace AlvinSoft.Cryptography {
             return pass;
         }
 
-        /// <summary>Generate a random combination string of the most common characters</summary>
+        /// <summary>Generate a random combination string of the most common characters.</summary>
         public static SecurePassword GenerateLettersPassword(int length) {
 
             char[] validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789?!@#$%^&*()_+-={}[];\'\"\\,./<>\\|`~".ToCharArray();
@@ -573,7 +573,7 @@ namespace AlvinSoft.Cryptography {
             return pass;
 
         }
-        /// <summary>Assign a newly generate IV</summary>
+        /// <summary>Assign a newly generate IV.</summary>
         public void GenerateIv() {
             using var aes = Aes.Create();
 
@@ -581,7 +581,7 @@ namespace AlvinSoft.Cryptography {
             IV = aes.IV; //the Aes class copies the byte array already, so just take the reference
         }
 
-        /// <summary>Assign a newly generated salt that is <see cref="SaltSize"/> bytes long</summary>
+        /// <summary>Assign a newly generated salt that is <see cref="SaltSize"/> bytes long.</summary>
         public void GenerateSalt() {
             Salt = new byte[SaltSize];
             Random.Shared.NextBytes(Salt);
@@ -600,13 +600,12 @@ namespace AlvinSoft.Cryptography {
             Key = func.GetBytes(32);
         }
 
-        /// <summary>Disposes of this instance</summary>
+        /// <summary>Disposes of this instance.</summary>
         public void Dispose() {
             IV = null;
             Key = null;
             Salt = null;
             Password.Dispose();
-            Password = null;
             GC.SuppressFinalize(this);
         }
     }
