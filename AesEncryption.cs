@@ -262,6 +262,9 @@ namespace AlvinSoft.Cryptography {
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>Serves as the default hash function.</summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode() => HashCode.Combine(SecureString);
     }
 
     /// <summary>Represents the Key and IV of an Aes encryption. Optionally holds a password and a salt to derive the key from.</summary>
