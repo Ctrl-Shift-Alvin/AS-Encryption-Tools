@@ -9,6 +9,10 @@ There are 2 main classes in the library:
 ```AesEncryption``` and
 ```RSAEncryption```
 
+### SecurePassword
+
+An instance of this class stores an internal ```SecureString``` instance for a safer handling of sensitive strings (like passwords).
+Use the ```ToString()``` method to retrieve a string representing the password. Note: this method copies the bytes twice. Once into unmanaged memory, then back into managed memory. This method can be slow for long passwords.
 
 ## AesEncryption
 
