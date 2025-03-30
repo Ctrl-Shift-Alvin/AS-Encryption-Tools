@@ -1,5 +1,8 @@
 # ASEncryptionTools
-is a library that abstracts the ```Aes``` and ```RSA``` classes to make encrypting and decrypting data, as well as importing/exporting encryption data, simpler.
+
+*This branch is ideally functionally identical to master. It uses .NET Standard 2.1 to make it compatible with Unity. It is also probably slower.*
+
+This is a library that abstracts the ```Aes``` and ```RSA``` classes to make encrypting and decrypting data, as well as importing/exporting encryption data, simpler.
 
 To start, include the library in your code:
 ```using AlvinSoft.Cryptography;```

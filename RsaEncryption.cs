@@ -7,16 +7,21 @@ using System.Linq;
 namespace AlvinSoft.Cryptography {
 
     /// <summary>Abstracts <see cref="RSA"/> and provides simple methods for importing/exporting public/private keys, and encrypting/decrypting.</summary>
-    [UnsupportedOSPlatform("browser")]
-    public class RSAEncryption(RSAKey key) {
+    public class RSAEncryption {
+
+        /// <summary>Abstracts <see cref="RSA"/> and provides simple methods for importing/exporting public/private keys, and encrypting/decrypting.</summary>
+        public RSAEncryption(RSAKey key) {
+            Key = key;
+        }
+
+        /// <summary>Create a new RSA instance and generate a key</summary>
+        public RSAEncryption() : this(new RSAKey()) { }
+
         /// <summary>The key size in bits used to initialize the <see cref="RSACryptoServiceProvider"/></summary>
         public int RSAKeySize { get; } = 2048;
 
         /// <summary>The RSA encryption parameters</summary>
-        public RSAKey Key = key;
-
-        /// <summary>Create a new RSA instance and generate a key</summary>
-        public RSAEncryption() : this(new RSAKey()) { }
+        public RSAKey Key { get; private set; }
 
         /// <summary>Create a new RSA instance and import <paramref name="parameters"/></summary>
         public RSAEncryption(RSAParameters parameters) : this(new RSAKey(parameters)) { }
@@ -88,16 +93,15 @@ namespace AlvinSoft.Cryptography {
     }
 
     /// <summary>Represents an RSA key, with or without the private key.</summary>
-    [UnsupportedOSPlatform("browser")]
-    public readonly struct RSAKey {
+    public class RSAKey {
 
         /// <summary>The used RSA key</summary>
         public RSAParameters Key { get; }
 
         /// <summary>true if <see cref="Key"/> contains a private key; otherwise false.</summary>
-        public bool HasPrivateKey { get; } = false;
+        public bool HasPrivateKey { get; }
         /// <summary>true if <see cref="Key"/> contains a public key; otherwise false.</summary>
-        public bool HasPublicKey { get; } = false;
+        public bool HasPublicKey { get; }
 
         /// <summary>
         /// Create a new <see cref="RSA"/> instance and import this instance's key.
@@ -131,6 +135,8 @@ namespace AlvinSoft.Cryptography {
 
             if (Key.Modulus?.Length > 0 && Key.Exponent?.Length > 0)
                 HasPublicKey = true;
+            else
+                HasPublicKey = false;
 
             if (Key.D?.Length > 0 &&
                 Key.P?.Length > 0 &&
@@ -139,6 +145,8 @@ namespace AlvinSoft.Cryptography {
                 Key.DQ?.Length > 0 &&
                 Key.InverseQ?.Length > 0)
                 HasPrivateKey = true;
+            else
+                HasPrivateKey = false;
 
         }
 
@@ -175,7 +183,7 @@ namespace AlvinSoft.Cryptography {
             using RSA rsa = RSA.Create();
             rsa.ImportPkcs8PrivateKey(key.AsSpan(1), out _);
 
-            return new(rsa.ExportParameters(true));
+            return new RSAKey(rsa.ExportParameters(true));
 
         }
 
@@ -209,7 +217,7 @@ namespace AlvinSoft.Cryptography {
             using RSA rsa = RSA.Create();
             rsa.ImportRSAPublicKey(key.AsSpan(1), out _);
 
-            return new(rsa.ExportParameters(false));
+            return new RSAKey(rsa.ExportParameters(false));
 
         }
         #endregion
@@ -229,7 +237,15 @@ namespace AlvinSoft.Cryptography {
             using RSA rsa = RSA.Create();
             rsa.ImportParameters(Key);
 
-            return rsa.ExportRSAPrivateKeyPem();
+            var privateKeyBytes = rsa.ExportRSAPrivateKey();
+            var privateKeyBase64 = Convert.ToBase64String(privateKeyBytes);
+            var sb = new StringBuilder();
+            sb.AppendLine("-----BEGIN RSA PRIVATE KEY-----");
+            for (int i = 0; i < privateKeyBase64.Length; i += 64) {
+                sb.AppendLine(privateKeyBase64.Substring(i, Math.Min(64, privateKeyBase64.Length - i)));
+            }
+            sb.AppendLine("-----END RSA PRIVATE KEY-----");
+            return sb.ToString();
         }
 
         /// <summary>
@@ -237,15 +253,19 @@ namespace AlvinSoft.Cryptography {
         /// </summary>
         public static RSAKey ImportPrivateKeyBase64(string privateKey) {
 
+            var keyLines = privateKey.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                                     .Where(line => !line.StartsWith("-----")).ToArray();
+            var keyBase64 = string.Join("", keyLines);
+            var keyBytes = Convert.FromBase64String(keyBase64);
+
             using RSA rsa = RSA.Create();
-            rsa.ImportFromPem(privateKey);
+            rsa.ImportRSAPrivateKey(keyBytes, out _);
 
-            return new(rsa.ExportParameters(true));
-
+            return new RSAKey(rsa.ExportParameters(true));
         }
 
         /// <summary>
-        /// Export the public key as a Base64 string
+        /// Export the public key as a Base64 string (PEM)
         /// </summary>
         /// <remarks>The string always starts with <c>-----BEGIN RSA PUBLIC KEY-----</c> and ends with <c>-----END RSA PUBLIC KEY-----</c></remarks>
         /// <returns>The encoded Base64 string</returns>
@@ -257,19 +277,31 @@ namespace AlvinSoft.Cryptography {
             using RSA rsa = RSA.Create();
             rsa.ImportParameters(Key);
 
-            return rsa.ExportRSAPublicKeyPem();
+            var publicKeyBytes = rsa.ExportRSAPublicKey();
+            var publicKeyBase64 = Convert.ToBase64String(publicKeyBytes);
+            var sb = new StringBuilder();
+            sb.AppendLine("-----BEGIN RSA PUBLIC KEY-----");
+            for (int i = 0; i < publicKeyBase64.Length; i += 64) {
+                sb.AppendLine(publicKeyBase64.Substring(i, Math.Min(64, publicKeyBase64.Length - i)));
+            }
+            sb.AppendLine("-----END RSA PUBLIC KEY-----");
+            return sb.ToString();
         }
 
-        /// <summary>
-        /// Import a Base64 encoded (PEM) public key
-        /// </summary>
+        /// <summary>  
+        /// Import a Base64 encoded (PEM) public key  
+        /// </summary>  
         public static RSAKey ImportPublicKeyBase64(string publicKey) {
 
+            var keyLines = publicKey.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                                    .Where(line => !line.StartsWith("-----")).ToArray();
+
+            var keyBase64 = string.Join("", keyLines);
+            var keyBytes = Convert.FromBase64String(keyBase64);
             using RSA rsa = RSA.Create();
-            rsa.ImportFromPem(publicKey);
+            rsa.ImportRSAPublicKey(keyBytes, out _);
 
-            return new(rsa.ExportParameters(false));
-
+            return new RSAKey(rsa.ExportParameters(false));
         }
 
         #endregion

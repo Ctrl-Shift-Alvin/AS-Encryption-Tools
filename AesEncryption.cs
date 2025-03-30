@@ -59,7 +59,8 @@ namespace AlvinSoft.Cryptography {
 
                 if (_keyDeriveIterations != value) {
 
-                    ArgumentOutOfRangeException.ThrowIfNegativeOrZero(value, nameof(KeyDeriveIterations));
+                    if (value <= 0)
+                        throw new ArgumentOutOfRangeException(nameof(value), nameof(KeyDeriveIterations));
 
                     _keyDeriveIterations = value;
 
@@ -95,7 +96,7 @@ namespace AlvinSoft.Cryptography {
         /// <summary>Create a new instance, assign password, salt and IV, then derive the key.</summary>
         public AesEncryption(string password, byte[] salt, byte[] iv, int derivingIterations = DefaultKeyDeriveIterations) {
 
-            _password = new(password);
+            _password = new SecurePassword(password);
 
             IV = new byte[iv.Length];
             Array.Copy(iv, IV, IV.Length);
@@ -133,7 +134,7 @@ namespace AlvinSoft.Cryptography {
             Key = key;
             IV = iv;
             Salt = null;
-            Password = new();
+            Password = new SecurePassword();
         }
 
         #region Encrypt
@@ -262,8 +263,10 @@ namespace AlvinSoft.Cryptography {
         /// <exception cref="ArgumentNullException"/>
         public CryptoStream GetEncryptor(Stream target) {
 
-            ArgumentNullException.ThrowIfNull(Key, nameof(Key));
-            ArgumentNullException.ThrowIfNull(IV, nameof(IV));
+            if (Key == null)
+                throw new ArgumentNullException(nameof(Key));
+            if (IV == null)
+                throw new ArgumentNullException(nameof(IV));
 
             var aes = Aes.Create();
 
@@ -280,8 +283,10 @@ namespace AlvinSoft.Cryptography {
         /// <exception cref="ArgumentNullException"/>
         public CryptoStream GetDecryptor(Stream target) {
 
-            ArgumentNullException.ThrowIfNull(Key, nameof(Key));
-            ArgumentNullException.ThrowIfNull(IV, nameof(IV));
+            if (Key == null)
+                throw new ArgumentNullException(nameof(Key));
+            if (IV == null)
+                throw new ArgumentNullException(nameof(IV));
 
             using var aes = Aes.Create();
             aes.Key = Key;
@@ -299,9 +304,9 @@ namespace AlvinSoft.Cryptography {
         /// <summary>Generate a string consisting of <paramref name="length"/> numbers.</summary>
         public static SecurePassword GenerateNumberPassword(int length) {
 
-            SecurePassword pass = new();
+            SecurePassword pass = new SecurePassword();
             for (int i = 0; i < length; i++)
-                pass.AppendChar(Random.Shared.Next(0, 10).ToString()[0]);
+                pass.AppendChar(Rdm.Next(0, 10).ToString()[0]);
 
             return pass;
         }
@@ -310,9 +315,9 @@ namespace AlvinSoft.Cryptography {
         public static SecurePassword GenerateLettersPassword(int length) {
 
             char[] validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789?!@#$%^&*()_+-={}[];\'\"\\,./<>\\|`~".ToCharArray();
-            SecurePassword pass = new();
+            SecurePassword pass = new SecurePassword();
             for (int i = 0; i < length; i++)
-                pass.AppendChar(validChars[Random.Shared.Next(0, validChars.Length)]);
+                pass.AppendChar(validChars[Rdm.Next(0, validChars.Length)]);
 
             return pass;
 
@@ -327,8 +332,7 @@ namespace AlvinSoft.Cryptography {
 
         /// <summary>Assign a newly generated salt that is <see cref="SaltSize"/> bytes long.</summary>
         public void GenerateSalt() {
-            Salt = new byte[SaltSize];
-            Random.Shared.NextBytes(Salt);
+            Salt = Rdm.GetBytes(SaltSize);
         }
 
         /// <summary>Derives <see cref="Password"/> using <see cref="Salt"/>, and iterates <see cref="KeyDeriveIterations"/> times. The bytes are assigned to this instance's key.</summary>
@@ -336,9 +340,12 @@ namespace AlvinSoft.Cryptography {
         /// <exception cref="ArgumentOutOfRangeException"/>
         public void DeriveKey() {
 
-            ArgumentNullException.ThrowIfNull(Password);
-            ArgumentNullException.ThrowIfNull(Salt);
-            ArgumentOutOfRangeException.ThrowIfNegative(KeyDeriveIterations);
+            if (Password == null as SecurePassword)
+                throw new ArgumentNullException(nameof(Password));
+            if (Salt == null)
+                throw new ArgumentNullException(nameof(Salt));
+            if (KeyDeriveIterations <= 0)
+                throw new ArgumentOutOfRangeException(nameof(KeyDeriveIterations));
 
             var func = new Rfc2898DeriveBytes(Password.PasswordUnicodeBytes, Salt, KeyDeriveIterations, HashAlgorithmName.SHA512);
             Key = func.GetBytes(32);
