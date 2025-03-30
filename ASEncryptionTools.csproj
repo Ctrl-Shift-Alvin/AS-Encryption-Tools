@@ -3,11 +3,11 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <OutputType>Library</OutputType>
 	<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <AssemblyTitle>AlvinSoft Encryption Tools</AssemblyTitle>
+    <AssemblyTitle>AlvinSoft Encryption Tools for Unity</AssemblyTitle>
     <Product>ASEncryptionTools</Product>
     <Copyright>Copyright © AlvinSoft 2024</Copyright>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.3.0.0</FileVersion>
+    <FileVersion>1.3.0.1</FileVersion>
     <NeutralLanguage>en-GB</NeutralLanguage>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
