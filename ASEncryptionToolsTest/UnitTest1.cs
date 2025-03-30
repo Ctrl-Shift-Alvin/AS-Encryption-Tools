@@ -28,8 +28,31 @@ namespace ASEncryptionToolsTest {
 
         }
 
-        [TestMethod("RSAEncryption Encrypt/Decrypt Test")]
+
+        [TestMethod("RSAKey Export/Import PEM Test")]
         public void Test2() {
+
+            RSAEncryption rsa1 = new();
+            RSAEncryption rsa2 = new(rsa1.Key);
+
+            Assert.IsTrue(TestHelper.TestRsa(rsa1, rsa2, true));
+
+            rsa1 = new();
+            string exportedKey = rsa1.Key.ExportPublicKeyBase64();
+
+            rsa2 = new(RSAKey.ImportPublicKeyBase64(exportedKey));
+
+            TestHelper.TestRsa(rsa2, rsa1, false);
+
+            exportedKey = rsa1.Key.ExportPrivateKeyBase64();
+            rsa2 = new(RSAKey.ImportPrivateKeyBase64(exportedKey));
+
+            TestHelper.TestRsa(rsa1, rsa2, true);
+
+        }
+
+        [TestMethod("RSAEncryption Encrypt/Decrypt Test")]
+        public void Test3() {
 
             RSAEncryption rsa1 = new();
             RSAEncryption rsa2 = new(rsa1.Key);
@@ -39,7 +62,7 @@ namespace ASEncryptionToolsTest {
         }
 
         [TestMethod("RSAEncryption Encrypt/Decrypt async Test")]
-        public async Task Test3() {
+        public async Task Test4() {
 
             RSAEncryption rsa1 = new();
             RSAEncryption rsa2 = new(rsa1.Key);
@@ -179,7 +202,7 @@ namespace ASEncryptionToolsTest {
             if (unencryptedString != decryptedString)
                 return false;
 
-            
+
             //test 4
             if (bothWays) {
                 encrypted = decryptRsa.EncryptString(unencryptedString);
@@ -258,7 +281,7 @@ namespace ASEncryptionToolsTest {
             int bytesRead, bytesReadTotal = 0;
             while ((bytesRead = decryptor.Read(buffer, bytesReadTotal, 16)) > 0)
                 bytesReadTotal += bytesRead;
-            
+
             decryptor.Dispose();
             File.Delete(fileName);
 
