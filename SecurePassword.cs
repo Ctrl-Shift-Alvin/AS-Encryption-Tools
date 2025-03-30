@@ -49,7 +49,7 @@ public class SecurePassword : IDisposable
     }
 
     /// <summary>Copy the <see cref="SecureString"/> character bytes to a string.</summary>
-    /// <returns>The string containing the <see cref="SecureString"/> chars</returns>
+    /// <returns>The string containing the <see cref="SecureString"/> chars.</returns>
     public override string ToString()
     {
         nint ptr = IntPtr.Zero;
@@ -286,7 +286,7 @@ public class SecurePassword : IDisposable
     public static bool operator !=(SecurePassword left, char[] right) => !left.Equals(right);
 
     #endregion
-    /// <summary>Disposes of this instance</summary>
+    /// <summary>Disposes of this instance.</summary>
     public void Dispose()
     {
         SecureString?.Dispose();

@@ -9,20 +9,20 @@ namespace AlvinSoft.Cryptography {
     /// <summary>Abstracts <see cref="RSA"/> and provides simple methods for importing/exporting public/private keys, and encrypting/decrypting.</summary>
     [UnsupportedOSPlatform("browser")]
     public class RSAEncryption(RSAKey key) {
-        /// <summary>The key size in bits used to initialize the <see cref="RSACryptoServiceProvider"/></summary>
+        /// <summary>The key size in bits used to initialize the <see cref="RSACryptoServiceProvider"/>.</summary>
         public int RSAKeySize { get; } = 2048;
 
-        /// <summary>The RSA encryption parameters</summary>
+        /// <summary>The RSA encryption parameters.</summary>
         public RSAKey Key = key;
 
-        /// <summary>Create a new RSA instance and generate a key</summary>
+        /// <summary>Create a new RSA instance and generate a key.</summary>
         public RSAEncryption() : this(new RSAKey()) { }
 
-        /// <summary>Create a new RSA instance and import <paramref name="parameters"/></summary>
+        /// <summary>Create a new RSA instance and import <paramref name="parameters"/>.</summary>
         public RSAEncryption(RSAParameters parameters) : this(new RSAKey(parameters)) { }
 
 
-        /// <summary>Encrypt <paramref name="data"/> using this instance's public key</summary>
+        /// <summary>Encrypt <paramref name="data"/> using this instance's public key.</summary>
         /// <returns>The encrypted bytes. If anything fails, <c>null</c>.</returns>
         public byte[] EncryptBytes(byte[] data) {
 
@@ -37,7 +37,7 @@ namespace AlvinSoft.Cryptography {
             }
         }
 
-        /// <summary>Decrypt <paramref name="data"/> using this instance's private key</summary>
+        /// <summary>Decrypt <paramref name="data"/> using this instance's private key.</summary>
         /// <returns>The encrypted bytes. If anything fails, <c>null</c>.</returns>
         /// <exception cref="CryptographicException"/>
         public byte[] DecryptBytes(byte[] data) {
@@ -53,7 +53,7 @@ namespace AlvinSoft.Cryptography {
             }
         }
 
-        /// <summary>Encrypt unicode string <paramref name="data"/> using this instance's public key</summary>
+        /// <summary>Encrypt unicode string <paramref name="data"/> using this instance's public key.</summary>
         /// <returns>The encrypted bytes. If anything fails, <c>null</c>.</returns>
         public byte[] EncryptString(string data) {
 
@@ -68,7 +68,7 @@ namespace AlvinSoft.Cryptography {
             }
         }
 
-        /// <summary>Decrypt encrypted unicode string bytes <paramref name="encryptedData"/> using this instance's private key</summary>
+        /// <summary>Decrypt encrypted unicode string bytes <paramref name="encryptedData"/> using this instance's private key.</summary>
         /// <returns>The encrypted bytes. If anything fails, <c>null</c>.</returns>
         /// <exception cref="CryptographicException"/>
         public string DecryptString(byte[] encryptedData) {
@@ -91,7 +91,7 @@ namespace AlvinSoft.Cryptography {
     [UnsupportedOSPlatform("browser")]
     public readonly struct RSAKey {
 
-        /// <summary>The used RSA key</summary>
+        /// <summary>The used RSA key.</summary>
         public RSAParameters Key { get; }
 
         /// <summary>true if <see cref="Key"/> contains a private key; otherwise false.</summary>
@@ -106,7 +106,7 @@ namespace AlvinSoft.Cryptography {
         public RSA CreateRSA() => RSA.Create(Key);
 
         /// <summary>
-        /// Create an instance with a generated key
+        /// Create an instance with a generated key.
         /// </summary>
         public RSAKey() {
 
@@ -118,9 +118,9 @@ namespace AlvinSoft.Cryptography {
 
         }
         /// <summary>
-        /// Create an instance that holds an RSA key with import/export functionality
+        /// Create an instance that holds an RSA key with import/export functionality.
         /// </summary>
-        /// <param name="parameters">The parameters used export the key from</param>
+        /// <param name="parameters">The parameters used export the key from.</param>
         /// <exception cref="ArgumentException"/>
         public RSAKey(RSAParameters parameters) {
 

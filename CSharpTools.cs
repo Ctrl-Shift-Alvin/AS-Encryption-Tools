@@ -4,7 +4,7 @@
 /// Shared, thread-safe <see cref="Random"/> instance.
 /// </summary>
 internal static class Rdm {
-    public static Random Shared = new Random();
+    public static Random Shared = new();
     public static byte[] GetBytes(int length) {
         byte[] buffer = new byte[length];
         lock (Shared)
