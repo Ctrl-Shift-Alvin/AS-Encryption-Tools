@@ -187,8 +187,8 @@ namespace AlvinSoft.Cryptography {
         }
         #endregion
         #region Base64
-        ///<summary>Encrypts a string using the instance's cryptographic info</summary>
-        ///<returns>The encrypted string bytes as a Base64 string</returns>
+        ///<summary>Encrypts a string using the instance's cryptographic info.</summary>
+        ///<returns>The encrypted string bytes as a Base64 string.</returns>
         public string EncryptToBase64(string data) {
             var encrypted = EncryptString(data);
             if (encrypted != null)
@@ -196,7 +196,7 @@ namespace AlvinSoft.Cryptography {
 
             return null;
         }
-        ///<summary>Decrypts Base64 string bytes using the instance's cryptographic info</summary>
+        ///<summary>Decrypts Base64 string bytes using the instance's cryptographic info.</summary>
         public string DecryptBase64(string data) {
             if (data != null)
                 DecryptString(Convert.FromBase64String(data));
@@ -205,7 +205,7 @@ namespace AlvinSoft.Cryptography {
         }
         #endregion
         #region Decrypt
-        ///<summary>Decrypts encrypted unicode bytes using this instance's cryptographic info</summary>
+        ///<summary>Decrypts encrypted unicode bytes using this instance's cryptographic info.</summary>
         ///<returns>The decrypted bytes. If the decryption fails, <c>null</c>.</returns>
         public string DecryptString(byte[] data) {
 
@@ -229,7 +229,7 @@ namespace AlvinSoft.Cryptography {
 
             return decrypted;
         }
-        ///<summary>Decrypts encrypted bytes using this instance's cryptographic info</summary>
+        ///<summary>Decrypts encrypted bytes using this instance's cryptographic info.</summary>
         ///<returns>The decrypted bytes. If the decryption fails, <c>null</c>.</returns>
         public byte[] DecryptBytes(byte[] data) {
 
@@ -258,7 +258,7 @@ namespace AlvinSoft.Cryptography {
         #endregion
         #region Streams
         /// <summary>Create a write-mode encryptor stream using this instance's cryptographic info.</summary>
-        /// <param name="target">The target stream that the CryptoStream writes to</param>\
+        /// <param name="target">The target stream that the CryptoStream writes to.</param>
         /// <remarks>Make sure to call <c>Dispose()</c> when no longer needed. CryptoStream then also disposes of the target stream (in .NET 8 at least).</remarks>
         /// <exception cref="ArgumentNullException"/>
         public CryptoStream GetEncryptor(Stream target) {
@@ -278,7 +278,7 @@ namespace AlvinSoft.Cryptography {
         }
 
         /// <summary>Create a read-mode encryptor stream using the instance's cryptographic info.</summary>
-        /// <param name="target">The target stream that the CryptoStream writes to</param>
+        /// <param name="target">The target stream that the CryptoStream writes to.</param>
         /// <remarks>Make sure to call <c>Dispose()</c> when no longer needed. CryptoStream then also disposes of the target stream (in .NET 8 at least).</remarks>
         /// <exception cref="ArgumentNullException"/>
         public CryptoStream GetDecryptor(Stream target) {

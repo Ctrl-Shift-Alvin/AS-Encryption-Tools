@@ -14,20 +14,20 @@ namespace AlvinSoft.Cryptography {
             Key = key;
         }
 
-        /// <summary>Create a new RSA instance and generate a key</summary>
+        /// <summary>Create a new RSA instance and generate a key.</summary>
         public RSAEncryption() : this(new RSAKey()) { }
 
-        /// <summary>The key size in bits used to initialize the <see cref="RSACryptoServiceProvider"/></summary>
+        /// <summary>The key size in bits used to initialize the <see cref="RSACryptoServiceProvider"/>.</summary>
         public int RSAKeySize { get; } = 2048;
 
-        /// <summary>The RSA encryption parameters</summary>
+        /// <summary>The RSA encryption parameters.</summary>
         public RSAKey Key { get; private set; }
 
-        /// <summary>Create a new RSA instance and import <paramref name="parameters"/></summary>
+        /// <summary>Create a new RSA instance and import <paramref name="parameters"/>.</summary>
         public RSAEncryption(RSAParameters parameters) : this(new RSAKey(parameters)) { }
 
 
-        /// <summary>Encrypt <paramref name="data"/> using this instance's public key</summary>
+        /// <summary>Encrypt <paramref name="data"/> using this instance's public key.</summary>
         /// <returns>The encrypted bytes. If anything fails, <c>null</c>.</returns>
         public byte[] EncryptBytes(byte[] data) {
 
@@ -42,7 +42,7 @@ namespace AlvinSoft.Cryptography {
             }
         }
 
-        /// <summary>Decrypt <paramref name="data"/> using this instance's private key</summary>
+        /// <summary>Decrypt <paramref name="data"/> using this instance's private key.</summary>
         /// <returns>The encrypted bytes. If anything fails, <c>null</c>.</returns>
         /// <exception cref="CryptographicException"/>
         public byte[] DecryptBytes(byte[] data) {
@@ -58,7 +58,7 @@ namespace AlvinSoft.Cryptography {
             }
         }
 
-        /// <summary>Encrypt unicode string <paramref name="data"/> using this instance's public key</summary>
+        /// <summary>Encrypt unicode string <paramref name="data"/> using this instance's public key.</summary>
         /// <returns>The encrypted bytes. If anything fails, <c>null</c>.</returns>
         public byte[] EncryptString(string data) {
 
@@ -73,7 +73,7 @@ namespace AlvinSoft.Cryptography {
             }
         }
 
-        /// <summary>Decrypt encrypted unicode string bytes <paramref name="encryptedData"/> using this instance's private key</summary>
+        /// <summary>Decrypt encrypted unicode string bytes <paramref name="encryptedData"/> using this instance's private key.</summary>
         /// <returns>The encrypted bytes. If anything fails, <c>null</c>.</returns>
         /// <exception cref="CryptographicException"/>
         public string DecryptString(byte[] encryptedData) {
@@ -95,7 +95,7 @@ namespace AlvinSoft.Cryptography {
     /// <summary>Represents an RSA key, with or without the private key.</summary>
     public class RSAKey {
 
-        /// <summary>The used RSA key</summary>
+        /// <summary>The used RSA key.</summary>
         public RSAParameters Key { get; }
 
         /// <summary>true if <see cref="Key"/> contains a private key; otherwise false.</summary>
@@ -110,7 +110,7 @@ namespace AlvinSoft.Cryptography {
         public RSA CreateRSA() => RSA.Create(Key);
 
         /// <summary>
-        /// Create an instance with a generated key
+        /// Create an instance with a generated key.
         /// </summary>
         public RSAKey() {
 
@@ -122,9 +122,9 @@ namespace AlvinSoft.Cryptography {
 
         }
         /// <summary>
-        /// Create an instance that holds an RSA key with import/export functionality
+        /// Create an instance that holds an RSA key with import/export functionality.
         /// </summary>
-        /// <param name="parameters">The parameters used export the key from</param>
+        /// <param name="parameters">The parameters used export the key from.</param>
         /// <exception cref="ArgumentException"/>
         public RSAKey(RSAParameters parameters) {
 
@@ -153,7 +153,7 @@ namespace AlvinSoft.Cryptography {
         #region Import_Export
 
         /// <summary>
-        /// Export the private key
+        /// Export the private key.
         /// </summary>
         /// <exception cref="ArgumentException"/>
         public byte[] ExportPrivateKey() {
@@ -188,7 +188,7 @@ namespace AlvinSoft.Cryptography {
         }
 
         /// <summary>
-        /// Export the public key
+        /// Export the public key.
         /// </summary>
         /// <exception cref="ArgumentException"/>
         public byte[] ExportPublicKey() {
@@ -205,9 +205,9 @@ namespace AlvinSoft.Cryptography {
 
         }
         /// <summary>
-        /// Import an exported public key
+        /// Import an exported public key.
         /// </summary>
-        /// <param name="key">A key exported with <see cref="ExportPublicKey"/></param>
+        /// <param name="key">A key exported with <see cref="ExportPublicKey"/>.</param>
         /// <exception cref="ArgumentException"/>
         public static RSAKey ImportPublicKey(byte[] key) {
 
@@ -225,10 +225,10 @@ namespace AlvinSoft.Cryptography {
         #region Base64
 
         /// <summary>
-        /// Export the private key as a Base64 string (PEM)
+        /// Export the private key as a Base64 string (PEM).
         /// </summary>
-        /// <remarks>The string always starts with <c>-----BEGIN RSA PRIVATE KEY-----</c> and ends with <c>-----END RSA PRIVATE KEY-----</c></remarks>
-        /// <returns>The encoded Base64 string</returns>
+        /// <remarks>The string always starts with <c>-----BEGIN RSA PRIVATE KEY-----</c> and ends with <c>-----END RSA PRIVATE KEY-----</c> .</remarks>
+        /// <returns>The encoded Base64 string.</returns>
         public string ExportPrivateKeyBase64() {
 
             if (!HasPrivateKey)
@@ -249,7 +249,7 @@ namespace AlvinSoft.Cryptography {
         }
 
         /// <summary>
-        /// Import a Base64 encoded (PEM) private key
+        /// Import a Base64 encoded (PEM) private key.
         /// </summary>
         public static RSAKey ImportPrivateKeyBase64(string privateKey) {
 
@@ -265,10 +265,10 @@ namespace AlvinSoft.Cryptography {
         }
 
         /// <summary>
-        /// Export the public key as a Base64 string (PEM)
+        /// Export the public key as a Base64 string (PEM).
         /// </summary>
-        /// <remarks>The string always starts with <c>-----BEGIN RSA PUBLIC KEY-----</c> and ends with <c>-----END RSA PUBLIC KEY-----</c></remarks>
-        /// <returns>The encoded Base64 string</returns>
+        /// <remarks>The string always starts with <c>-----BEGIN RSA PUBLIC KEY-----</c> and ends with <c>-----END RSA PUBLIC KEY-----</c> .</remarks>
+        /// <returns>The encoded Base64 string.</returns>
         public string ExportPublicKeyBase64() {
 
             if (!HasPublicKey)
@@ -289,7 +289,7 @@ namespace AlvinSoft.Cryptography {
         }
 
         /// <summary>  
-        /// Import a Base64 encoded (PEM) public key  
+        /// Import a Base64 encoded (PEM) public key.
         /// </summary>  
         public static RSAKey ImportPublicKeyBase64(string publicKey) {
 

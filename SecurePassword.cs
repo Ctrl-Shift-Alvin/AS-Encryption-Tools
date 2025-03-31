@@ -45,7 +45,7 @@ namespace AlvinSoft.Cryptography {
         }
 
         /// <summary>Copy the <see cref="SecureString"/> character bytes to a string.</summary>
-        /// <returns>The string containing the <see cref="SecureString"/> chars</returns>
+        /// <returns>The string containing the <see cref="SecureString"/> chars.</returns>
         public override string ToString() {
             IntPtr ptr = IntPtr.Zero;
             try {
@@ -60,7 +60,7 @@ namespace AlvinSoft.Cryptography {
         /// Check if the underlying unicode chars of this instance and <paramref name="obj"/> are identical.
         /// </summary>
         /// <remarks><paramref name="obj"/> can be a <see cref="SecurePassword"/>, <see cref="SecureString"/>, <see cref="string"/> or <see cref="char"/>[] instance.</remarks>
-        /// <param name="obj"></param>
+        /// <param name="obj"/>
         /// <returns>true if <paramref name="obj"/> is a text type and the char bytes are identical.</returns>
         public override bool Equals(object obj) {
 
@@ -256,7 +256,7 @@ namespace AlvinSoft.Cryptography {
         public static bool operator !=(SecurePassword left, char[] right) => !left.Equals(right);
 
         #endregion
-        /// <summary>Disposes of this instance</summary>
+        /// <summary>Disposes of this instance.</summary>
         public void Dispose() {
             SecureString?.Dispose();
             GC.SuppressFinalize(this);
