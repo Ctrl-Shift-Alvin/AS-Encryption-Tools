@@ -6,8 +6,8 @@ using System.Runtime.InteropServices;
 namespace AlvinSoft.Cryptography;
 
 /// <summary>Represents a password securely stored in memory.</summary>
-public class SecurePassword : IDisposable
-{
+public class SecurePassword : IDisposable {
+
     /// <summary>The <see cref="System.Security.SecureString"/> instance that is storing the password.</summary>
     public SecureString SecureString { get; private set; }
 
