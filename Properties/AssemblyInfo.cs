@@ -2,7 +2,9 @@
 using System.Runtime.InteropServices;
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
-[assembly: AssemblyFileVersion("1.3.0.1")]
+#pragma warning disable CS7035
+[assembly: AssemblyFileVersion("1.3.0.1u")]
+#pragma warning restore CS7035
 
 // Setting ComVisible to false makes the types in this assembly not visible
 // to COM components.  If you need to access a type in this assembly from

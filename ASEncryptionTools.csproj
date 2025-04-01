@@ -6,8 +6,6 @@
     <AssemblyTitle>AlvinSoft Encryption Tools for Unity</AssemblyTitle>
     <Product>ASEncryptionTools</Product>
     <Copyright>Copyright © AlvinSoft 2024</Copyright>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.3.0.1</FileVersion>
     <NeutralLanguage>en-GB</NeutralLanguage>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
